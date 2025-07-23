@@ -63,7 +63,7 @@ export class Chart1 extends Chart
 		let speedX: number  = speedLow.scaleOffset.x * this.mmPerPixel;
 		let speedY: number  = speedLowY;
 		let slope: number  = (speedY - altY) / (speedX - altX);
-		let keasLowinterceptX: number  = 47 * this.mmPerPixel;
+		let keasLowinterceptX: number  = keasLowScale.scaleOffset.x * this.mmPerPixel;
 		let keasLowinterceptY: number  = altY + (slope * (keasLowinterceptX - altX));
 		
 		return keasLowScale.getDataPointForSlideValue(keasLowinterceptY);
@@ -73,7 +73,7 @@ export class Chart1 extends Chart
 	{
 		let altitudeScale: AbstractScale | undefined =this.scales.get("altitudeScale");
 		let speedHigh: AbstractScale | undefined = this.scales.get("speedLow");
-		let keasHighScale: AbstractScale | undefined = this.scales.get("keasLowScale");
+		let keasHighScale: AbstractScale | undefined = this.scales.get("keasHighScale");
 
 		if (altitudeScale == undefined || speedHigh == undefined || keasHighScale == undefined) return 0;
 
@@ -82,7 +82,7 @@ export class Chart1 extends Chart
 		let speedX: number = speedHigh.scaleOffset.x * this.mmPerPixel;
 		let speedY: number = speedHighY;
 		let slope: number = (speedY - altY) / (speedX - altX);
-		let keasHighinterceptX: number = 43 * this.mmPerPixel;
+		let keasHighinterceptX: number = keasHighScale.scaleOffset.x * this.mmPerPixel;
 		let keashighinterceptY: number = altY + (slope * (keasHighinterceptX - altX));
 		
 		return keasHighScale.getDataPointForSlideValue(keashighinterceptY);
