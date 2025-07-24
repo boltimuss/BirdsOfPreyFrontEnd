@@ -1,11 +1,11 @@
 import React, { useRef, useEffect } from 'react';
-import { Chart1 } from '../Nomograph/Charts/Chart1.ts';
+import { Chart2 } from '../Nomograph/Charts/Chart2.ts';
 import { Rectangle2D } from '../Nomograph/SupportObjects/Rectangle2D.ts';
 
-function Chart_1() {
+function Chart_2() {
 
   const canvasRef = useRef(null);
-  const chart1 = useRef(null);
+  const chart2 = useRef(null);
 
   useEffect(() => {
     draw();
@@ -23,7 +23,7 @@ function Chart_1() {
 
     let x = (event.clientX - rect.left) * scaleX;
     let y = (event.clientY - rect.top) * scaleY;
-    chart1.current.handleMouseDown(x, y);
+    chart2.current.handleMouseDown(x, y);
   };
 
   const handleMouseClick = (event) => {
@@ -34,7 +34,7 @@ function Chart_1() {
 
     let x = (event.clientX - rect.left) * scaleX;
     let y = (event.clientY - rect.top) * scaleY;
-    chart1.current.handleMouseClick(x, y);
+    chart2.current.handleMouseClick(x, y);
   };
 
   const handleMouseMove = (event) => {
@@ -45,7 +45,7 @@ function Chart_1() {
 
     let x = (event.clientX - rect.left) * scaleX;
     let y = (event.clientY - rect.top) * scaleY;
-    chart1.current.handleMouseMove(x, y);
+    chart2.current.handleMouseMove(x, y);
   };
 
   const handleMouseUp = (event) => {
@@ -56,15 +56,15 @@ function Chart_1() {
 
     let x = (event.clientX - rect.left) * scaleX;
     let y = (event.clientY - rect.top) * scaleY;
-    chart1.current.handleMouseUp(x, y);
+    chart2.current.handleMouseUp(x, y);
   };
 
   const draw = () => {
     const canvas = canvasRef.current;
-    if (canvas && chart1.current == null) {
+    if (canvas && chart2.current == null) {
       const ctx = canvas.getContext('2d');
-      chart1.current = new Chart1(new Rectangle2D(0, 0, 450, 450), ctx);
-      chart1.current.init();
+      chart2.current = new Chart2(new Rectangle2D(0, 0, 450, 450), ctx);
+      chart2.current.init();
     }
   };
 
@@ -75,4 +75,4 @@ function Chart_1() {
   );
 }
 
-export default Chart_1
+export default Chart_2
