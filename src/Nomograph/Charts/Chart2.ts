@@ -378,46 +378,46 @@ export class Chart2 extends Chart
 				// GameState.getInstanceOf().getAircraftState().get(currentAircraftId).setMach(getScales().get("machLow").getValue());
 			}
 		}
-		// else if (keasLowScale && keasLowScale.isShowDraggable() && keasLowScale.isDragging) 
-		// {
-		// 	double offsetY = mmPerPixel * getScales().get("keasLowScale").getScaleOffset().getY();
-		// 	if ((sceneY/2.0) < offsetY + (mmPerPixel*getScales().get("keasLowScale").getMmStartOffset())) return;
-		// 	else if ((sceneY/2.0) > offsetY + (getScales().get("keasLowScale").getMmHeight()*mmPerPixel)) return;
-		// 	int clampResult = clampToscale(getScales().get("altitudeScale").getDraggableX(), getScales().get("altitudeScale").getDraggableY(), 
-		// 			getScales().get("keasLowScale").getDraggableX(), sceneY/2.0, 
-		// 			getScales().get("keasHighScale").getDraggableX(), getScales().get("keasHighScale").getDraggableY());
-		// 	if (clampResult == 0)
-		// 	{
-		// 		getScales().get("keasLowScale").setDraggableY(sceneY/2.0);
-		// 	}
-		// 	else
-		// 	{
-		// 		getScales().get("keasLowScale").setDraggableY(calcLowKeasYForMachY((clampResult == -1), true));
-		// 	}
-		// 	getScales().get("machLow").setValue(getLowMach(getScales().get("altitudeScale").getDraggableY(), getScales().get("keasLowScale").getDraggableY()));
-		// 	String currentAircraftId = GameState.getInstanceOf().getCurrentAircraft();
-		// 	GameState.getInstanceOf().getAircraftState().get(currentAircraftId).setMach(getScales().get("machLow").getValue());
-		// }
-		// else if (keasHighScale && keasHighScale.isShowDraggable() && keasHighScale.isDragging)
-		// {
-		// 	double offsetY = mmPerPixel * getScales().get("keasHighScale").getScaleOffset().getY();
-		// 	if ((sceneY/2.0) < offsetY + (mmPerPixel*getScales().get("keasHighScale").getMmStartOffset())) return;
-		// 	else if ((sceneY/2.0) > offsetY + (getScales().get("keasHighScale").getMmHeight()*mmPerPixel)) return;
-		// 	int clampResult = clampToscale(getScales().get("altitudeScale").getDraggableX(), getScales().get("altitudeScale").getDraggableY(), 
-		// 			getScales().get("keasLowScale").getDraggableX(), getScales().get("keasLowScale").getDraggableY(), 
-		// 			getScales().get("keasHighScale").getDraggableX(), sceneY/2.0);
-		// 	if (clampResult == 0)
-		// 	{
-		// 		getScales().get("keasHighScale").setDraggableY(sceneY/2.0);
-		// 	}
-		// 	else
-		// 	{
-		// 		getScales().get("keasHighScale").setDraggableY(calcLowKeasYForMachY((clampResult == -1), false));
-		// 	}
-		// 	getScales().get("machLow").setValue(getHighMach(getScales().get("altitudeScale").getDraggableY(), getScales().get("keasHighScale").getDraggableY()));
-		// 	String currentAircraftId = GameState.getInstanceOf().getCurrentAircraft();
-		// 	GameState.getInstanceOf().getAircraftState().get(currentAircraftId).setMach(getScales().get("machLow").getValue());
-		// }
+		else if (machLow && altitudeScale && keasHighScale && keasLowScale && keasLowScale.isShowDraggable() && keasLowScale.isDragging) 
+		{
+			let offsetY = this.mmPerPixel * keasLowScale.scaleOffset.y;
+			if (y < offsetY + (this.mmPerPixel*keasLowScale.mmStartOffset)) return;
+			else if (y > offsetY + keasLowScale.mmHeight*this.mmPerPixel) return;
+			let clampResult: number = this.clampToscale(altitudeScale.draggableX, altitudeScale.draggableY, 
+					keasLowScale.draggableX, y, 
+					keasHighScale.draggableX, keasHighScale.draggableY);
+			if (clampResult == 0)
+			{
+				keasLowScale.draggableY = y;
+			}
+			else
+			{
+				keasLowScale.draggableY = this.calcLowKeasYForMachY((clampResult == -1), true);
+			}
+			machLow.value = this.getLowMach(altitudeScale.draggableY, keasLowScale.draggableY);
+			// String currentAircraftId = GameState.getInstanceOf().getCurrentAircraft();
+			// GameState.getInstanceOf().getAircraftState().get(currentAircraftId).setMach(getScales().get("machLow").getValue());
+		}
+		else if (machLow && keasLowScale && altitudeScale && keasHighScale && keasHighScale.isShowDraggable() && keasHighScale.isDragging)
+		{
+			let offsetY: number = this.mmPerPixel * keasHighScale.scaleOffset.y;
+			if (y < offsetY + (this.mmPerPixel*keasHighScale.mmStartOffset)) return;
+			else if (y> offsetY + (keasHighScale.mmHeight*this.mmPerPixel)) return;
+			let clampResult: number = this.clampToscale(altitudeScale.draggableX, altitudeScale.draggableY, 
+					keasLowScale.draggableX, keasLowScale.draggableY, 
+					keasHighScale.draggableX, y);
+			if (clampResult == 0)
+			{
+				keasHighScale.draggableY = y;
+			}
+			else
+			{
+				keasHighScale.draggableY = this.calcLowKeasYForMachY((clampResult == -1), false);
+			}
+			machLow.value = this.getHighMach(altitudeScale.draggableY, keasHighScale.draggableY);
+			// String currentAircraftId = GameState.getInstanceOf().getCurrentAircraft();
+			// GameState.getInstanceOf().getAircraftState().get(currentAircraftId).setMach(getScales().get("machLow").getValue());
+		}
 		else
 		{
 			this.noClick = false;
@@ -425,6 +425,25 @@ export class Chart2 extends Chart
 		}
 		
 		this.drawLines();
+	}
+
+	private calcLowKeasYForMachY(useMin: boolean, useLowMach: boolean): number
+	{
+		let altitudeScale: AbstractScale | undefined = this.scales.get("altitudeScale");
+		let keasLowScale: AbstractScale | undefined = this.scales.get("keasLowScale");
+		let keasHighScale: AbstractScale | undefined = this.scales.get("keasHighScale");
+		let machLow: AbstractScale | undefined = this.scales.get("machLow");
+		let machHigh: AbstractScale | undefined = this.scales.get("machHigh");
+
+		if (!altitudeScale || !keasLowScale || !machLow || !keasHighScale || !machHigh) return 0.0;
+		let x1: number = altitudeScale.scaleOffset.x * this.mmPerPixel;
+		let y1: number = altitudeScale.draggableY;
+		let x2: number = (useLowMach) ? keasLowScale.scaleOffset.x * this.mmPerPixel : keasHighScale.scaleOffset.x * this.mmPerPixel;
+		let x3: number = (useLowMach) ? machLow.scaleOffset.x * this.mmPerPixel : machHigh.scaleOffset.x * this.mmPerPixel;
+		let y3: number = (useMin) ?machLow.scaleOffset.y * this.mmPerPixel : 
+			(machLow.scaleOffset.y + machLow.mmHeight) * this.mmPerPixel;
+		let slope: number = (y3 - y1) / (x3 - x1);
+		return (slope * (x2 - x1)) + y1;
 	}
 
 		private getLowMach(altitudeY: number, speedLowY: number): number

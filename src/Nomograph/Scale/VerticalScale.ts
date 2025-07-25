@@ -142,7 +142,14 @@ export class VerticalScale extends AbstractScale
 			}
 		};
 		
-		return -999;
+		if (slideValue < this.sections[0].startLocation)
+		{
+			return this.sections[0].startValue;
+		}
+		else if (slideValue > this.sections[this.sections.length - 1].endLocation)
+			{
+			return this.sections[this.sections.length - 1].endValue;
+		}
 	}
 	
 	public init(): void
