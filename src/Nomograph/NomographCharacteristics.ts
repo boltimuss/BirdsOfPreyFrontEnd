@@ -1,5 +1,6 @@
 import './LabelSide'
 import { LabelSide } from './LabelSide';
+import { Point2D } from './SupportObjects/Point2D';
 
 export class NomographCharacteristics
 {
@@ -11,10 +12,24 @@ export class NomographCharacteristics
 	tickWidthHeight: number;
 	lineWidth: number;
 	color: string;
+	rotation: number;
+	rotationOffset: Point2D
 
 	public static builder(): NomographCharacteristics
 	{
 		return new NomographCharacteristics();
+	}
+
+	public setRotationOffset(rotationOffset: Point2D): NomographCharacteristics
+	{
+		this.rotationOffset = rotationOffset;
+		return this;
+	}
+
+	public setRotation(rotation: number): NomographCharacteristics
+	{
+		this.rotation = rotation;
+		return this;
 	}
 
 	public setLabelSide(labelSide: LabelSide): NomographCharacteristics

@@ -42,6 +42,7 @@ export abstract class Chart
 	
 	draw(scale: number)
 	{
+		scale = .84;
 		this.ctx.clearRect(-this.scaleMargin*this.mmPerPixel, 0, this.width, this.height);
 		this.ctx.setTransform(1, 0, 0, 1, 0, 0);
 		this.ctx.translate(this.scaleMargin * this.mmPerPixel, 0);

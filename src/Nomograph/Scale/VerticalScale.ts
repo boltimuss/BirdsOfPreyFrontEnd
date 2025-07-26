@@ -150,6 +150,8 @@ export class VerticalScale extends AbstractScale
 			{
 			return this.sections[this.sections.length - 1].endValue;
 		}
+
+		return -999;
 	}
 	
 	public init(): void
