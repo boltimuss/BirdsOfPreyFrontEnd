@@ -4,7 +4,7 @@ import { GraphicsContext } from '../SupportObjects/GraphicsContext';
 export interface Scale 
 {
 	containsClick(x: number, y: number): boolean;
-	isDraggingDot(x: number, y: number, scaleMargin: number): boolean;
+	isDraggingDot(x: number, y: number, scaleMargin: number, isVertical: boolean): boolean;
 	isShowDraggable(): boolean;
 	draw(gc: GraphicsContext): void;
 	drawDraggableNotch(gc: GraphicsContext): void;

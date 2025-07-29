@@ -42,7 +42,7 @@ export abstract class Chart
 	
 	draw(scale: number)
 	{
-		scale = .84;
+		// scale = .84;
 		this.ctx.clearRect(-this.scaleMargin*this.mmPerPixel, 0, this.width, this.height);
 		this.ctx.setTransform(1, 0, 0, 1, 0, 0);
 		this.ctx.translate(this.scaleMargin * this.mmPerPixel, 0);
@@ -51,7 +51,7 @@ export abstract class Chart
 		for (let s of this.scales.values()) s.drawDraggableNotch(this.ctx);
 		
 		// this.ctx.setFill("rgb(255,0,0,0.5)");
-		// this.ctx.fillRect(30 * this.mmPerPixel, 8 * this.mmPerPixel, 28, 75 * this.mmPerPixel);
+		// this.ctx.fillRect(8 * this.mmPerPixel, 166 * this.mmPerPixel, 148 * this.mmPerPixel, 8 * this.mmPerPixel);
 	}
 
 	public abstract drawLines(): void;

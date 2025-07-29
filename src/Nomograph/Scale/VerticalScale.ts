@@ -77,28 +77,7 @@ export class VerticalScale extends AbstractScale
 		return this;
 
 	}
-
-	containsClick(x: number, y: number): boolean
-	{
-		let result: boolean = true;
-		result = result && (x >= this.clickZone.getMinX() && x <= this.clickZone.getMaxX());
-		result = result && (y >= this.clickZone.getMinY() && y <= this.clickZone.getMaxY());
 		
-		return result;
-	}
-		
-	public isDraggingDot(x: number, y: number, scaleMargin: number): boolean
-	{
-		let result: boolean = true;
-		let dragX: number = this.draggableX;
-		let dragY: number = this.draggableY;
-		
-		result = result && ((x - (this.mmPerPixel * scaleMargin)) <= dragX + 12 && (x - (this.mmPerPixel * scaleMargin)) >= dragX - 12);
-		result = result && (y <= dragY + 12 && y >= dragY - 12);
-		
-		return result;
-	}
-	
 	public getPointForSlideValue(dataPoint: number): Point2D
 	{
 		this.sections.forEach((section) =>
@@ -117,86 +96,16 @@ export class VerticalScale extends AbstractScale
 		return new Point2D(0,0);
 	}
 	
-	public getDataPointForSlideValue(slideValue: number): number
-	{
-
-		for (let i=0; i < this.sections.length; i++)
-		{
-			let section: Section = this.sections[i];
-
-			if (slideValue >= section.startLocation && slideValue <= section.endLocation)
-			{
-				let deltaY: number = Math.abs(section.startLocation - section.endLocation);
-				let deltaValue: number = Math.abs(section.startValue - section.endValue);
-				let percentage: number = Math.abs(slideValue - section.startLocation) / deltaY;
-
-				if (this.charactistics.isDescending)
-				{
-					return section.startValue - (percentage * deltaValue);
-				}
-				else
-				{
-					return (percentage * deltaValue) + section.startValue;
-				}
-
-			}
-		};
-		
-		if (slideValue < this.sections[0].startLocation)
-		{
-			return this.sections[0].startValue;
-		}
-		else if (slideValue > this.sections[this.sections.length - 1].endLocation)
-			{
-			return this.sections[this.sections.length - 1].endValue;
-		}
-
-		return -999;
-	}
-	
-	public init(): void
-	{
-		let mmPerPixel: number = (window.devicePixelRatio * 96)/25.4;
-		let offsetY: number = mmPerPixel * this.scaleOffset.y;
-		
-		let currentPixelLocation: number = offsetY + (this.mmStartOffset*mmPerPixel);
-		this.sections.forEach((section) =>
-		{
-			section.startLocation = currentPixelLocation;
-			section.endLocation = currentPixelLocation + (section.mmHeight * mmPerPixel);
-			currentPixelLocation += (section.mmHeight * mmPerPixel);
-		});
-	}
-	
 	public draw(gc: GraphicsContext): void
 	{
 		let offsetX: number = this.mmPerPixel * this.scaleOffset.x;
 		let offsetY: number= this.mmPerPixel * this.scaleOffset.y;
 		
 		// draw shaded regions first
-		if (this.shadedRegions != null) 
-        {
-            this.shadedRegions.forEach((region) =>
-		    {
-				if (!region.useYValue)
-				{
-					let regionXOffset: number = (offsetX - region.width) * this.mmPerPixel;
-					let height: number = Math.abs(this.getPointForSlideValue(region.startValue).y - this.getPointForSlideValue(region.endValue).y);
-					gc.setFill(region.color);
-					gc.fillRect(regionXOffset, this.getPointForSlideValue(region.startValue).y, region.width* this.mmPerPixel, height);
-				}
-				else
-				{
-					gc.setFill(region.color);
-					gc.fillRect(offsetX - region.width * this.mmPerPixel, offsetY + (region.yMMStart * this.mmPerPixel), region.width * this.mmPerPixel, (region.yMMEnd - region.yMMStart) * this.mmPerPixel);
-				}
-			});
-		}
+		this.drawShadedRegions(offsetX, offsetY, gc);
 		
 		// draw main axis spine
-		gc.setFill(this.charactistics.color);
-		gc.setLineWidth(this.charactistics.lineWidth);
-		gc.strokeLine(offsetX, offsetY, offsetX, offsetY + (this.mmHeight*this.mmPerPixel));
+		this.drawMainAxisSpine(offsetX, offsetY, gc, true);
 		
 		// draw the section
 		gc.moveTo(offsetX, offsetY + (this.mmPerPixel*this.mmStartOffset));

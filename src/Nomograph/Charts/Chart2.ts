@@ -329,19 +329,19 @@ export class Chart2 extends Chart
 		let keasHighScale: AbstractScale | undefined = this.scales.get("keasHighScale");
 		let machLow: AbstractScale | undefined = this.scales.get("machLow");
 
-		if (altitudeScale && !altitudeScale.isDragging && altitudeScale.isDraggingDot(x, y, this.scaleMargin))
+		if (altitudeScale && !altitudeScale.isDragging && altitudeScale.isDraggingDot(x, y, this.scaleMargin, true))
 		{
 			altitudeScale.isDragging = true;
 			if (keasHighScale) keasHighScale.isDragging = false;
 			if (keasLowScale) keasLowScale.isDragging = false;
 		}
-		else if (keasLowScale && !keasLowScale.isDragging && keasLowScale.isDraggingDot(x, y, this.scaleMargin))
+		else if (keasLowScale && !keasLowScale.isDragging && keasLowScale.isDraggingDot(x, y, this.scaleMargin, true))
 		{
 			keasLowScale.isDragging = true;
 			if (keasHighScale) keasHighScale.isDragging = false;
 			if (altitudeScale) altitudeScale.isDragging = false;
 		}
-		else if (keasHighScale && !keasHighScale.isDragging && keasHighScale.isDraggingDot(x, y, this.scaleMargin))
+		else if (keasHighScale && !keasHighScale.isDragging && keasHighScale.isDraggingDot(x, y, this.scaleMargin, true))
 		{
 			keasHighScale.isDragging = true;
 			if (keasLowScale) keasLowScale.isDragging = false;
@@ -568,10 +568,6 @@ export class Chart2 extends Chart
 		if (speedLow) speedLow.isDragging= false;
 		if (speedHigh) speedHigh.isDragging= false;
 	}
-
-	private isInRect= (x: number, y: number, dimensions: Rectangle2D) => {
-    	return x >= dimensions.getMinX() && x <= dimensions.getMaxX() && y >= dimensions.getMinY() && x <= dimensions.getMaxY();
-  	};
 
 	public handleMouseDown(x: number, y: number)
 	{

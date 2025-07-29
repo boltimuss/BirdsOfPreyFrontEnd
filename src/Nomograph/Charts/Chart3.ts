@@ -10,6 +10,7 @@ import { AbstractScale } from "../Scale/AbstractScale";
 import { LabelSide } from "../LabelSide";
 import { VerticalScale } from "../Scale/VerticalScale";
 import { HorizontalScale } from "../Scale/HorizontalScale";
+import { SlantScale } from "../Scale/SlantScale";
 
 export class Chart3 extends Chart
 {
@@ -22,161 +23,151 @@ export class Chart3 extends Chart
     public drawLines(): void 
     {
 		this.draw(1.0);
-		let altitudeScale: AbstractScale | undefined = this.scales.get("altitudeScale");
+		let wingLoadScale: AbstractScale | undefined = this.scales.get("wingLoadScale");
 		let keasLowScale: AbstractScale | undefined = this.scales.get("keasLowScale");
 		let keasHighScale: AbstractScale | undefined = this.scales.get("keasHighScale");
-
-		if (altitudeScale !== undefined && altitudeScale.isShowDraggable() && 
-		    keasLowScale !== undefined && keasLowScale.isShowDraggable())
+		
+		if (wingLoadScale && wingLoadScale.isShowDraggable() && keasLowScale && keasLowScale.isShowDraggable())
 		{
-			let x1: number = altitudeScale.draggableX;
-			let y1: number = altitudeScale.draggableY;
+			let x1: number = wingLoadScale.draggableX;
+			let y1: number = wingLoadScale.draggableY;
 			let x2: number = keasLowScale.draggableX;
 			let y2: number = keasLowScale.draggableY;
-			let slope = (y2 - y1) / (x2 - x1);
-			let x3: number = 76 * this.mmPerPixel;
-			let y3: number = (slope * (x3 - x2)) + y2;
+			
+			let slope: number = -((y2 - y1) / (x2 - x1));
+			let xOffset: number =keasLowScale.scaleOffset.x * this.mmPerPixel;
+			let b2: number = (-slope*(x2-xOffset)); 
+			
+			let intersectionPt: Point2D | null = this.calculateIntersectionPoint(1.0, 0.0, slope, b2);
+			
+			let xInt: number = (intersectionPt) ? intersectionPt.x + xOffset : 0;
+			let yInt: number = (intersectionPt) ? y2 - intersectionPt.y : 0;
+			
+			// String currentAircraftId = GameState.getInstanceOf().getCurrentAircraft();
+			// GameState.getInstanceOf().getAircraftState().get(currentAircraftId).setQPoint(new Point2D(xInt, yInt));
 			
 			this.ctx.setLineWidth(1);
-			this.ctx.strokeLine(x1, y1, x3, y3);
+			this.ctx.strokeLine(x1, y1, x2, y2);
+			wingLoadScale.drawDraggableNotch(this.ctx);
+			keasLowScale.drawDraggableNotch(this.ctx);
+			
+			this.ctx.setFill("red");
+			this.ctx.fillOval(xInt, yInt, 6, 6);
+			
 		}
-		else if (altitudeScale !== undefined && altitudeScale.isShowDraggable() && 
-		            keasHighScale !== undefined && keasHighScale.isShowDraggable())
+		else if (wingLoadScale && wingLoadScale.isShowDraggable() && keasHighScale && keasHighScale.isShowDraggable())
 		{
-			let x1: number = altitudeScale.draggableX;
-			let y1: number = altitudeScale.draggableY;
+			let x1: number = wingLoadScale.draggableX;
+			let y1: number = wingLoadScale.draggableY;
 			let x2: number = keasHighScale.draggableX;
 			let y2: number = keasHighScale.draggableY;
-			let slope = (y2 - y1) / (x2 - x1);
-			let x3: number = 76 * this.mmPerPixel;
-			let y3: number = (slope * (x3 - x2)) + y2;
-
-            this.ctx.setLineWidth(1);
-			this.ctx.strokeLine(x1, y1, x3, y3);
+			
+			let slope: number = -((y2 - y1) / (x2 - x1));
+			let xOffset: number = keasHighScale.scaleOffset.x * this.mmPerPixel;
+			let b2: number = (-slope*(x2-xOffset)); 
+			
+			let intersectionPt: Point2D | null = this.calculateIntersectionPoint(1.0, 0.0, slope, b2);
+			
+			let xInt = (intersectionPt) ? intersectionPt.x + xOffset : 0;
+			let yInt = (intersectionPt) ? y2 - intersectionPt.y: 0;
+			
+			// String currentAircraftId = GameState.getInstanceOf().getCurrentAircraft();
+			// GameState.getInstanceOf().getAircraftState().get(currentAircraftId).setQPoint(new Point2D(xInt, yInt));
+			
+			this.ctx.setLineWidth(1);
+			this.ctx.strokeLine(x1, y1, x2, y2);
+			wingLoadScale.drawDraggableNotch(this.ctx);
+			keasHighScale.drawDraggableNotch(this.ctx);
+			
+			this.ctx.setFill("red");
+			this.ctx.fillOval(xInt, yInt, 6, 6);
+			
+		}
+		else
+		{
+			return;
 		}
 		
     }
     
-    private getKeasLow(altitudeY: number, speedLowY: number): number
-	{
-		let altitudeScale: AbstractScale | undefined =this.scales.get("altitudeScale");
-		let speedLow: AbstractScale | undefined = this.scales.get("speedLow");
-		let keasLowScale: AbstractScale | undefined = this.scales.get("keasLowScale");
-
-		if (altitudeScale == undefined || speedLow == undefined || keasLowScale == undefined) return 0;
-
-		let altX: number = altitudeScale.scaleOffset.x * this.mmPerPixel;
-		let altY: number  = altitudeY;
-		let speedX: number  = speedLow.scaleOffset.x * this.mmPerPixel;
-		let speedY: number  = speedLowY;
-		let slope: number  = (speedY - altY) / (speedX - altX);
-		let keasLowinterceptX: number  = keasLowScale.scaleOffset.x * this.mmPerPixel;
-		let keasLowinterceptY: number  = altY + (slope * (keasLowinterceptX - altX));
-		
-		return keasLowScale.getDataPointForSlideValue(keasLowinterceptY);
-	}
-	
-	private getKeasHigh(altitudeY: number, speedHighY: number): number
-	{
-		let altitudeScale: AbstractScale | undefined =this.scales.get("altitudeScale");
-		let speedHigh: AbstractScale | undefined = this.scales.get("speedLow");
-		let keasHighScale: AbstractScale | undefined = this.scales.get("keasHighScale");
-
-		if (altitudeScale == undefined || speedHigh == undefined || keasHighScale == undefined) return 0;
-
-		let altX: number = altitudeScale.scaleOffset.x * this.mmPerPixel;
-		let altY: number = altitudeY;
-		let speedX: number = speedHigh.scaleOffset.x * this.mmPerPixel;
-		let speedY: number = speedHighY;
-		let slope: number = (speedY - altY) / (speedX - altX);
-		let keasHighinterceptX: number = keasHighScale.scaleOffset.x * this.mmPerPixel;
-		let keashighinterceptY: number = altY + (slope * (keasHighinterceptX - altX));
-		
-		return keasHighScale.getDataPointForSlideValue(keashighinterceptY);
-	}
-	
 	public execute(...parameters: any[]): any
 	{
-		let altitude: number = parameters[0];
-		let speedHighValue: number = parameters[1];
-		let speedLowValue: number = parameters[2];
-		let useHigh: boolean = parameters[3];
+		// double wingload = (double) parameters[0];
+		// double keasLow = (double) parameters[1];
+		// double keasHigh = (double) parameters[2];
+		// boolean useHigh = (boolean) parameters[3];
 		
-		let altitudeScale: AbstractScale | undefined =this.scales.get("altitudeScale");
-		let speedHigh: AbstractScale | undefined = this.scales.get("speedLow");
-		let speedLow: AbstractScale | undefined = this.scales.get("keasLowScale");
-
-		if (useHigh && altitudeScale !== undefined && speedHigh !== undefined && speedLow !== undefined)
-		{
-			let value:number = this.getKeasHigh(altitudeScale.getPointForSlideValue(altitude).y, speedHigh.getPointForSlideValue(speedHighValue).y);
-			let currentAircraftId: string  = GameState.getInstanceOf().currentAircraft;
-			GameState.getInstanceOf().aircraftState.get(currentAircraftId).setKeas(value);
-			return value;
-		}
-		else if (altitudeScale !== undefined && speedLow !== undefined)
-		{
-			let value: number = this.getKeasLow(altitudeScale.getPointForSlideValue(altitude).y, speedLow.getPointForSlideValue(speedLowValue).y);
-			let currentAircraftId: string  = GameState.getInstanceOf().currentAircraft;
-			GameState.getInstanceOf().aircraftState.get(currentAircraftId).setKeas(value);
-			return value;
-		}
+		// double x1 = getScales().get("wingLoadScale").getPointForSlideValue(wingload).getX();
+		// double y1 = getScales().get("wingLoadScale").getDraggableY();
+		// double x2 = (useHigh) ? getScales().get("keasHighScale").getPointForSlideValue(keasHigh).getX() : getScales().get("keasLowScale").getPointForSlideValue(keasLow).getX();
+		// double y2 = (useHigh) ? getScales().get("keasHighScale").getDraggableY() : getScales().get("keasLowScale").getDraggableY();
+		
+		// double slope = -((y2 - y1) / (x2 - x1));
+		// double xOffset = getScales().get("keasLowScale").getScaleOffset().getX() * mmPerPixel;
+		// double b2 = (-slope*(x2-xOffset)); 
+		
+		// Point2D intersectionPt = calculateIntersectionPoint(1.0, 0.0, slope, b2);
+		
+		// double xInt = intersectionPt.getX() + xOffset;
+		// double yInt = y2 - intersectionPt.getY(); 
+	    
+		// String currentAircraftId = GameState.getInstanceOf().getCurrentAircraft();
+		// GameState.getInstanceOf().getAircraftState().get(currentAircraftId).setQPoint(new Point2D(xInt, yInt));
+		
+		// return new Point2D(xInt, yInt);
 	}
 	
-	private initAltitudeScale(): VerticalScale
+	private initQScale(): SlantScale
 	{
 		let sections: Array<Section> = [];
 		
-		sections.push(Section.builder().setFontAxisOffset(8).setMMHeight(31.5).setNumDivisions(13).setStartValue(320).setEndValue(200).setDrawLast(false));
-		sections.push(Section.builder().setFontAxisOffset(8).setMMHeight(20).setNumDivisions(9).setStartValue(200).setEndValue(120).setDrawLast(false));
-		sections.push(Section.builder().setFontAxisOffset(8).setMMHeight(2.25).setNumDivisions(2).setStartValue(120).setEndValue(110).setDrawLast(false));
-		sections.push(Section.builder().setFontAxisOffset(8).setMMHeight(4.5).setNumDivisions(3).setStartValue(110).setEndValue(90).setDrawLast(false));
-		sections.push(Section.builder().setFontAxisOffset(7).setMMHeight(4.5).setNumDivisions(3).setStartValue(90).setEndValue(70).setDrawLast(false));
-		sections.push(Section.builder().setFontAxisOffset(7).setMMHeight(4.25).setNumDivisions(3).setStartValue(70).setEndValue(50).setDrawLast(false));
-		sections.push(Section.builder().setFontAxisOffset(7).setFontAxisOffsetLast(6).setMMHeight(10).setNumDivisions(6).setStartValue(50).setEndValue(0).setDrawLast(true));
-				
 		let characteristics: NomographCharacteristics = NomographCharacteristics.builder()
 				.setFontSize(11).setTickWidthHeight(1).setFontHeightOffset(.75).setLineWidth(1).setIsDescending(true).setColor("black").setLabelSide(LabelSide.LEFT);
-		
-		let altitudeScale: VerticalScale = VerticalScale.builder()
-				.setMMStartOffset(10)
-				.setMMHeight(87)
-				.setSections(sections) 
-				.setCharactistics(characteristics)
-				.setScaleOffset(new Point2D(10, 10))
-				.setDraggableOffset(new Point2D(0,0))
-				.setClickZone(new Rectangle2D(this.scaleMargin * this.mmPerPixel, 10 * this.mmPerPixel, 35, 212 * this.mmPerPixel));
 
-		altitudeScale.setLabel(ScaleLabel.builder()
-				.setDrawValue(false)
-				.setLabel("Altitude")
-				.setLabelColor("rgb(255, 15, 0)")
-				.setStepNum(" 2")
-				.setScaleLocation(new Point2D(6, -8))
-				.setStepNumLocation(new Point2D(2, -25)));
+		let shadedRegions: Array<ShadedRegion> = [];
+		shadedRegions.push(ShadedRegion.builder().setColor("yellow").setWidth(1.0).setUseYValue(true).setyMMStart(137).setyMMEnd(166.5));
+		shadedRegions.push(ShadedRegion.builder().setColor("orange").setWidth(1.0).setUseYValue(true).setyMMStart(166.5).setyMMEnd(179));
+		shadedRegions.push(ShadedRegion.builder().setColor("red").setWidth(1.0).setUseYValue(true).setyMMStart(179).setyMMEnd(194.75));
+
+
+		let qScale: SlantScale = SlantScale.builder()
+				.setMMStartOffset(0)
+				.setMMHeight(194.75)
+				.setSections(sections)
+				.setCharactistics(characteristics)
+				.setScaleOffset(new Point2D(148, 20))
+				.setDraggableOffset(new Point2D(0,0))
+				.setShadedRegions(shadedRegions);
 		
-		altitudeScale.init();
+		qScale.setLabel(ScaleLabel.builder()
+				.setLabel("Q-Mark")
+				.setRotation(-90)
+				.setLabelColor("brown")
+				.setStepNum(" 3")
+				.setScaleLocation(new Point2D(-350, 280))
+				.setStepNumLocation(new Point2D(-370, 275)));
 		
-		return altitudeScale;
-	}
+		qScale.init();
 	
+		return qScale;
+	}
+
 	private initKeasHighScale(): HorizontalScale
 	{
 		let sections: Array<Section> = [];
 		
-		sections.push(Section.builder().setFontAxisOffset(2).setMMWidth(2.5).setNumDivisions(2).setStartValue(0).setEndValue(160));
+		sections.push(Section.builder().setFontAxisOffset(2).setMMWidth(2.25).setNumDivisions(2).setStartValue(0).setEndValue(160));
 		sections.push(Section.builder().setFontAxisOffset(2).setMMWidth(3).setNumDivisions(2).setStartValue(160).setEndValue(240));
-		sections.push(Section.builder().setFontAxisOffset(2).setMMWidth(4.25).setNumDivisions(2).setStartValue(240).setEndValue(320));
-		sections.push(Section.builder().setFontAxisOffset(2).setMMWidth(5.5).setNumDivisions(2).setStartValue(320).setEndValue(400));
-		sections.push(Section.builder().setFontAxisOffset(2).setMMWidth(6.5).setNumDivisions(2).setStartValue(400).setEndValue(480));
-		sections.push(Section.builder().setFontAxisOffset(2).setMMWidth(7.75).setNumDivisions(2).setStartValue(480).setEndValue(560));
+		sections.push(Section.builder().setFontAxisOffset(2).setMMWidth(4).setNumDivisions(2).setStartValue(240).setEndValue(320));
+		sections.push(Section.builder().setFontAxisOffset(2).setMMWidth(5.25).setNumDivisions(2).setStartValue(320).setEndValue(400));
+		sections.push(Section.builder().setFontAxisOffset(2).setMMWidth(6.75).setNumDivisions(2).setStartValue(400).setEndValue(480));
+		sections.push(Section.builder().setFontAxisOffset(2).setMMWidth(8).setNumDivisions(2).setStartValue(480).setEndValue(560));
 		sections.push(Section.builder().setFontAxisOffset(2).setMMWidth(9).setNumDivisions(2).setStartValue(560).setEndValue(640));
-		sections.push(Section.builder().setFontAxisOffset(2).setMMWidth(10).setNumDivisions(2).setStartValue(640).setEndValue(720));
-		sections.push(Section.builder().setFontAxisOffset(2).setMMWidth(11.5).setNumDivisions(2).setStartValue(720).setEndValue(800));
-		sections.push(Section.builder().setFontAxisOffset(2).setMMWidth(12.75).setNumDivisions(2).setStartValue(800).setEndValue(880));
-		sections.push(Section.builder().setFontAxisOffset(2).setMMWidth(13.5).setNumDivisions(2).setStartValue(880).setEndValue(960));
-		sections.push(Section.builder().setFontAxisOffset(2).setMMWidth(15).setNumDivisions(2).setStartValue(960).setEndValue(1040));
-		sections.push(Section.builder().setFontAxisOffset(2).setMMWidth(16.25).setNumDivisions(2).setStartValue(1040).setEndValue(1120));
-		sections.push(Section.builder().setFontAxisOffsetLast(2).setDrawLast(true).setFontAxisOffset(2).setMMWidth(17.25).setNumDivisions(2).setStartValue(1120).setEndValue(1200).setColor("purple"));
+		sections.push(Section.builder().setFontAxisOffset(2).setMMWidth(10.5).setNumDivisions(2).setStartValue(640).setEndValue(720));
+		sections.push(Section.builder().setFontAxisOffset(2).setMMWidth(11.25).setNumDivisions(2).setStartValue(720).setEndValue(800));
+		sections.push(Section.builder().setFontAxisOffset(2).setMMWidth(13).setNumDivisions(2).setStartValue(800).setEndValue(880));
+		sections.push(Section.builder().setFontAxisOffset(2).setMMWidth(14).setNumDivisions(2).setStartValue(880).setEndValue(960));
+		sections.push(Section.builder().setFontAxisOffsetLast(2).setDrawLast(true).setFontAxisOffset(2).setMMWidth(15.0).setNumDivisions(2).setStartValue(960).setEndValue(1040).setColor("purple"));
 		
 		let characteristics: NomographCharacteristics = NomographCharacteristics.builder()
 				.setFontSize(11)
@@ -186,16 +177,16 @@ export class Chart3 extends Chart
 				.setIsDescending(false)
 				.setColor("purple")
 				.setRotation(90)
-				.setRotationOffset(new Point2D(20, 7))
-				.setLabelSide(LabelSide.RIGHT);
+				.setRotationOffset(new Point2D(30, 7))
+				.setLabelSide(LabelSide.LEFT);
 		
 		 let keasHighScale: HorizontalScale = HorizontalScale.builder()
 			.setMMStartOffset(0)
-			.setMMWidth(138)
+			.setMMWidth(104.5)
 			.setSections(sections)
 			.setCharactistics(characteristics)
-			.setScaleOffset(new Point2D(10, 80))
-			.setClickZone(new Rectangle2D(8 * this.mmPerPixel, 133.75 * this.mmPerPixel, 148 * this.mmPerPixel, 14 * this.mmPerPixel))
+			.setScaleOffset(new Point2D(10, 158))
+			.setClickZone(new Rectangle2D(8 * this.mmPerPixel, 166 * this.mmPerPixel, 148 * this.mmPerPixel, 8 * this.mmPerPixel))
 			.setDraggableOffset(new Point2D(0, 135));
 
 		keasHighScale.init();
@@ -238,358 +229,135 @@ export class Chart3 extends Chart
 				.setMMWidth(140)
 				.setSections(sections)
 				.setCharactistics(characteristics)
-				.setScaleOffset(new Point2D(10, 50))
+				.setScaleOffset(new Point2D(10, 158))
 				.setDraggableOffset(new Point2D(0,135))
-				.setClickZone(new Rectangle2D(8 * this.mmPerPixel, 148 * this.mmPerPixel, 148 * this.mmPerPixel, 14 * this.mmPerPixel));
+				.setClickZone(new Rectangle2D(8 * this.mmPerPixel, 158 * this.mmPerPixel, 148 * this.mmPerPixel, 8 * this.mmPerPixel));
 		
 		keasLowScale.setLabel(ScaleLabel.builder()
 				.setDrawValue(false)
 				.setLabel("KEAS")
 				.setLabelColor("brown")
 				.setStepNum(" 3")
-				.setScaleLocation(new Point2D(26, -6))
+				.setScaleLocation(new Point2D(390, 50))
 				.setScaleOffset(new Point2D(10, 0))
-				.setStepNumLocation(new Point2D(2, -25)));
+				.setStepNumLocation(new Point2D(455, 44)));
 		
 		keasLowScale.init();
 		
 		return keasLowScale;
 	}
-	
-	private initMachHigh(): VerticalScale
+
+	private initWingLoadScale(): HorizontalScale
 	{
 		let sections: Array<Section> = [];
-		sections.push(Section.builder().setFontAxisOffset(2).setMMHeight(10).setNumDivisions(2).setStartValue(1.2).setEndValue(1.3));
-		sections.push(Section.builder().setFontAxisOffset(2).setMMHeight(9.25).setNumDivisions(2).setStartValue(1.3).setEndValue(1.4));
-		sections.push(Section.builder().setFontAxisOffset(2).setMMHeight(8.75).setNumDivisions(2).setStartValue(1.4).setEndValue(1.5));
-		sections.push(Section.builder().setFontAxisOffset(2).setMMHeight(8.25).setNumDivisions(2).setStartValue(1.5).setEndValue(1.6));
-		sections.push(Section.builder().setFontAxisOffset(2).setMMHeight(7.75).setNumDivisions(2).setStartValue(1.6).setEndValue(1.7));
-		sections.push(Section.builder().setFontAxisOffset(2).setMMHeight(7.25).setNumDivisions(2).setStartValue(1.7).setEndValue(1.8));
-		sections.push(Section.builder().setFontAxisOffset(2).setMMHeight(6.75).setNumDivisions(2).setStartValue(1.8).setEndValue(1.9));
-		sections.push(Section.builder().setFontAxisOffset(2).setMMHeight(6.5).setNumDivisions(2).setStartValue(1.9).setEndValue(2.0));
-		sections.push(Section.builder().setFontAxisOffset(2).setMMHeight(6.25).setNumDivisions(2).setStartValue(2.0).setEndValue(2.1));
-		sections.push(Section.builder().setFontAxisOffset(2).setMMHeight(5.75).setNumDivisions(2).setStartValue(2.1).setEndValue(2.2));
-		sections.push(Section.builder().setFontAxisOffsetLast(2).setDrawLast(true).setFontAxisOffset(2).setMMHeight(5.5).setNumDivisions(2).setStartValue(2.2).setEndValue(2.3));
+
+		sections.push(Section.builder().setFontAxisOffset(8).setMMWidth(5.75).setNumDivisions(2).setStartValue(208.5).setEndValue(200));
+		sections.push(Section.builder().setFontAxisOffsetLast(8).setDrawLast(true).setFontAxisOffset(8).setMMWidth(132.25).setNumDivisions(21).setStartValue(200).setEndValue(0).setColor("black"));
 
 		let characteristics: NomographCharacteristics = NomographCharacteristics.builder()
-				.setFontSize(11).setTickWidthHeight(1).setFontHeightOffset(.75).setLineWidth(1).setIsDescending(false).setColor("black").setLabelSide(LabelSide.RIGHT);
+				.setFontSize(11)
+				.setTickWidthHeight(1)
+				.setFontHeightOffset(.75)
+				.setLineWidth(1)
+				.setIsDescending(true)
+				.setColor("black")
+				.setLabelSide(LabelSide.RIGHT)
+				.setRotation(-90)
+				.setRotationOffset(new Point2D(-20, 1));
 		
-		let machHighScale: VerticalScale = VerticalScale.builder()
+		let wingLoadScale: HorizontalScale = HorizontalScale.builder()
 				.setMMStartOffset(0)
-				.setMMHeight(87)
+				.setMMWidth(138)
 				.setSections(sections)
 				.setCharactistics(characteristics)
-				.setScaleOffset(new Point2D(76, 10))
+				.setScaleOffset(new Point2D(10, 20))
 				.setDraggableOffset(new Point2D(0,0))
-				.setClickZone(new Rectangle2D((76 + this.scaleMargin) * this.mmPerPixel, 8 * this.mmPerPixel, 21, 212 * this.mmPerPixel));
+				.setClickZone(new Rectangle2D(8 * this.mmPerPixel, 10 * this.mmPerPixel, 142 * this.mmPerPixel, 8 * this.mmPerPixel));
 		
-		machHighScale.init();
+		wingLoadScale.setLabel(ScaleLabel.builder()
+				.setDrawValue(false)
+				.setLabel("Wing-Load")
+				.setLabelColor("brown")
+				.setStepNum(" 3")
+				.setScaleLocation(new Point2D(180, -46))
+				.setScaleOffset(new Point2D(122, 10))
+				.setStepNumLocation(new Point2D(390, -42)));
 		
-		return machHighScale;
+		wingLoadScale.init();
+		
+		return wingLoadScale;
 	}
 	
-	private initMachLow(): VerticalScale
-	{
-		let sections: Array<Section> = [];
-		sections.push(Section.builder().setFontAxisOffset(8).setMMHeight(10).setNumDivisions(2).setStartValue(.6).setEndValue(.65));
-		sections.push(Section.builder().setFontAxisOffset(8).setMMHeight(9.25).setNumDivisions(2).setStartValue(.65).setEndValue(.7));
-		sections.push(Section.builder().setFontAxisOffset(8).setMMHeight(8.75).setNumDivisions(2).setStartValue(.7).setEndValue(.75));
-		sections.push(Section.builder().setFontAxisOffset(8).setMMHeight(8.25).setNumDivisions(2).setStartValue(.75).setEndValue(.8));
-		sections.push(Section.builder().setFontAxisOffset(8).setMMHeight(7.75).setNumDivisions(2).setStartValue(.8).setEndValue(.85));
-		sections.push(Section.builder().setFontAxisOffset(8).setMMHeight(7.25).setNumDivisions(2).setStartValue(.85).setEndValue(.9));
-		sections.push(Section.builder().setFontAxisOffset(8).setMMHeight(6.75).setNumDivisions(2).setStartValue(.9).setEndValue(.95));
-		sections.push(Section.builder().setFontAxisOffset(8).setMMHeight(6.5).setNumDivisions(2).setStartValue(.95).setEndValue(1.0));
-		sections.push(Section.builder().setFontAxisOffset(8).setMMHeight(6.25).setNumDivisions(2).setStartValue(1.0).setEndValue(1.05));
-		sections.push(Section.builder().setFontAxisOffset(8).setMMHeight(5.75).setNumDivisions(2).setStartValue(1.05).setEndValue(1.1));
-		sections.push(Section.builder().setFontAxisOffsetLast(8).setDrawLast(true).setFontAxisOffset(8).setMMHeight(5.5).setNumDivisions(2).setStartValue(1.10).setEndValue(1.15));
-
-		let shadedRegions: Array<ShadedRegion> = [];
-		shadedRegions.push(ShadedRegion.builder().setColor("grey").setWidth(1.5).setStartValue(.6).setEndValue(.90).setUseYValue(true).setyMMStart(0).setyMMEnd(51.25));
-		shadedRegions.push(ShadedRegion.builder().setColor("yellow").setWidth(1.5).setStartValue(.9).setEndValue(1.0).setUseYValue(true).setyMMStart(51.25).setyMMEnd(64.5));
-		shadedRegions.push(ShadedRegion.builder().setColor("orangered").setWidth(1.0).setStartValue(1.0).setEndValue(1.10).setUseYValue(true).setyMMStart(64.5).setyMMEnd(76.5));
-
-		let characteristics: NomographCharacteristics = NomographCharacteristics.builder()
-				.setFontSize(11).setTickWidthHeight(1).setFontHeightOffset(.75).setLineWidth(1).setIsDescending(false).setColor("black").setLabelSide(LabelSide.LEFT);
-		
-		let machLowScale: VerticalScale = VerticalScale.builder()
-				.setMMStartOffset(0)
-				.setMMHeight(87)
-				.setSections(sections)
-				.setCharactistics(characteristics)
-				.setScaleOffset(new Point2D(76, 10))
-				.setDraggableOffset(new Point2D(0,0))
-				.setShadedRegions(shadedRegions)
-				.setClickZone(new Rectangle2D((69 + this.scaleMargin) * this.mmPerPixel, 8 * this.mmPerPixel, 21, 212 * this.mmPerPixel))
-		
-		machLowScale.setLabel(ScaleLabel.builder()
-				.setDrawValue(true)
-				.setLabel("Mach")
-				.setLabelColor("rgb(255,15,0)")
-				.setStepNum(" 2")
-				.setScaleLocation(new Point2D(-35, -6))
-				.setScaleOffset(new Point2D(-10, 0))
-				.setStepNumLocation(new Point2D(-40, -25)));
-		
-		machLowScale.init();
-		
-		return machLowScale;
-	}
-
 	public handleMouseMove(x: number, y: number)
 	{
 		if (!this.isDragging) {
 			return;
 		}
-
+		
 		this.noClick = true;
-		let altitudeScale: AbstractScale | undefined = this.scales.get("altitudeScale");
+		let wingLoadScale: AbstractScale | undefined = this.scales.get("wingLoadScale");
 		let keasLowScale: AbstractScale | undefined = this.scales.get("keasLowScale");
 		let keasHighScale: AbstractScale | undefined = this.scales.get("keasHighScale");
-		let machLow: AbstractScale | undefined = this.scales.get("machLow");
 
-		if (altitudeScale && !altitudeScale.isDragging && altitudeScale.isDraggingDot(x, y, this.scaleMargin))
+		if (wingLoadScale && wingLoadScale.isDragging == false && keasLowScale && keasHighScale && !wingLoadScale.isDragging && wingLoadScale.isDraggingDot(x, y, this.scaleMargin, false))
 		{
-			altitudeScale.isDragging = true;
-			if (keasHighScale) keasHighScale.isDragging = false;
-			if (keasLowScale) keasLowScale.isDragging = false;
+			wingLoadScale.isDragging = true;
+			keasLowScale.isDragging = false;
+			keasHighScale.isDragging = false;
 		}
-		else if (keasLowScale && !keasLowScale.isDragging && keasLowScale.isDraggingDot(x, y, this.scaleMargin))
+		else if (wingLoadScale && keasLowScale && keasLowScale.isDragging == false && keasHighScale && keasLowScale.isDraggingDot(x, y, this.scaleMargin, false) && (!keasLowScale.isDragging))
 		{
+			wingLoadScale.isDragging = false;
 			keasLowScale.isDragging = true;
-			if (keasHighScale) keasHighScale.isDragging = false;
-			if (altitudeScale) altitudeScale.isDragging = false;
+			keasHighScale.isDragging = false;
 		}
-		else if (keasHighScale && !keasHighScale.isDragging && keasHighScale.isDraggingDot(x, y, this.scaleMargin))
+		else if (wingLoadScale && keasLowScale && keasHighScale && keasHighScale.isDragging == false && keasHighScale.isDraggingDot(x, y, this.scaleMargin, false) && (!keasHighScale.isDragging))
 		{
+			wingLoadScale.isDragging = false;
+			keasLowScale.isDragging = false;
 			keasHighScale.isDragging = true;
-			if (keasLowScale) keasLowScale.isDragging = false;
-			if (altitudeScale) altitudeScale.isDragging = false;
 		}
 		
-		if (altitudeScale && altitudeScale.isShowDraggable() && altitudeScale.isDragging && keasLowScale && keasHighScale) 
+		if (wingLoadScale && wingLoadScale.isShowDraggable() && wingLoadScale.isDragging) 
 		{
-			let offsetY = this.mmPerPixel *altitudeScale.scaleOffset.y;
-			if (y < offsetY + (this.mmPerPixel*altitudeScale.mmStartOffset)) return;
-			else if (y > offsetY + (altitudeScale.mmHeight*this.mmPerPixel)) return;
-			let clampResult: number = this.clampToscale(altitudeScale.draggableX, y, 
-					keasLowScale.draggableX, keasLowScale.draggableY, 
-					keasHighScale.draggableX, keasHighScale.draggableY);
-			if (clampResult == 0)
-			{
-				altitudeScale.draggableY = y;
-			}
-			else
-			{
-				altitudeScale.draggableY = this.calcAltitudeYForMachY((clampResult == -1),keasLowScale.isShowDraggable());
-			}
-			
-			if (keasLowScale.isShowDraggable() && machLow)
-			{
-				machLow.value = this.getLowMach(altitudeScale.draggableY, keasLowScale.draggableY);
-				// String currentAircraftId = GameState.getInstanceOf().getCurrentAircraft();
-				// GameState.getInstanceOf().getAircraftState().get(currentAircraftId).setMach(getScales().get("machLow").getValue());
-			}
-			else if (keasHighScale.isShowDraggable() && machLow)
-			{
-				machLow.value = this.getHighMach(altitudeScale.draggableY, keasHighScale.draggableY);
-				// String currentAircraftId = GameState.getInstanceOf().getCurrentAircraft();
-				// GameState.getInstanceOf().getAircraftState().get(currentAircraftId).setMach(getScales().get("machLow").getValue());
-			}
+			let offsetX: number = this.mmPerPixel * wingLoadScale.scaleOffset.x + 44;
+			if (x < offsetX + (this.mmPerPixel*wingLoadScale.mmStartOffset)) return;
+			else if (x > offsetX + (wingLoadScale.mmWidth*this.mmPerPixel)) return;
+			wingLoadScale.draggableX = x - 44;
 		}
-		else if (machLow && altitudeScale && keasHighScale && keasLowScale && keasLowScale.isShowDraggable() && keasLowScale.isDragging) 
+		else if (keasLowScale && keasLowScale.isShowDraggable() && keasLowScale.isDragging) 
 		{
-			let offsetY = this.mmPerPixel * keasLowScale.scaleOffset.y;
-			if (y < offsetY + (this.mmPerPixel*keasLowScale.mmStartOffset)) return;
-			else if (y > offsetY + keasLowScale.mmHeight*this.mmPerPixel) return;
-			let clampResult: number = this.clampToscale(altitudeScale.draggableX, altitudeScale.draggableY, 
-					keasLowScale.draggableX, y, 
-					keasHighScale.draggableX, keasHighScale.draggableY);
-			if (clampResult == 0)
-			{
-				keasLowScale.draggableY = y;
-			}
-			else
-			{
-				keasLowScale.draggableY = this.calcLowKeasYForMachY((clampResult == -1), true);
-			}
-			machLow.value = this.getLowMach(altitudeScale.draggableY, keasLowScale.draggableY);
-			// String currentAircraftId = GameState.getInstanceOf().getCurrentAircraft();
-			// GameState.getInstanceOf().getAircraftState().get(currentAircraftId).setMach(getScales().get("machLow").getValue());
+			let offsetX: number = this.mmPerPixel * keasLowScale.scaleOffset.x + 44;
+			if (x < offsetX + (this.mmPerPixel*keasLowScale.mmStartOffset)) return;
+			else if (x > offsetX + (keasLowScale.mmWidth*this.mmPerPixel)) return;
+			keasLowScale.draggableX = x - 44;
 		}
-		else if (machLow && keasLowScale && altitudeScale && keasHighScale && keasHighScale.isShowDraggable() && keasHighScale.isDragging)
+		else if (keasHighScale && keasHighScale.isShowDraggable() && keasHighScale.isDragging) 
 		{
-			let offsetY: number = this.mmPerPixel * keasHighScale.scaleOffset.y;
-			if (y < offsetY + (this.mmPerPixel*keasHighScale.mmStartOffset)) return;
-			else if (y> offsetY + (keasHighScale.mmHeight*this.mmPerPixel)) return;
-			let clampResult: number = this.clampToscale(altitudeScale.draggableX, altitudeScale.draggableY, 
-					keasLowScale.draggableX, keasLowScale.draggableY, 
-					keasHighScale.draggableX, y);
-			if (clampResult == 0)
-			{
-				keasHighScale.draggableY = y;
-			}
-			else
-			{
-				keasHighScale.draggableY = this.calcLowKeasYForMachY((clampResult == -1), false);
-			}
-			machLow.value = this.getHighMach(altitudeScale.draggableY, keasHighScale.draggableY);
-			// String currentAircraftId = GameState.getInstanceOf().getCurrentAircraft();
-			// GameState.getInstanceOf().getAircraftState().get(currentAircraftId).setMach(getScales().get("machLow").getValue());
+			let offsetX: number = this.mmPerPixel * keasHighScale.scaleOffset.x + 44;
+			if (x < offsetX + (this.mmPerPixel*keasHighScale.mmStartOffset)) return;
+			else if (x > offsetX + (keasHighScale.mmWidth*this.mmPerPixel)) return;
+			keasHighScale.draggableX = x - 44;
 		}
 		else
 		{
-			this.noClick = false;
 			return;
 		}
-		
 		this.drawLines();
-	}
-
-	private calcLowKeasYForMachY(useMin: boolean, useLowMach: boolean): number
-	{
-		let altitudeScale: AbstractScale | undefined = this.scales.get("altitudeScale");
-		let keasLowScale: AbstractScale | undefined = this.scales.get("keasLowScale");
-		let keasHighScale: AbstractScale | undefined = this.scales.get("keasHighScale");
-		let machLow: AbstractScale | undefined = this.scales.get("machLow");
-		let machHigh: AbstractScale | undefined = this.scales.get("machHigh");
-
-		if (!altitudeScale || !keasLowScale || !machLow || !keasHighScale || !machHigh) return 0.0;
-		let x1: number = altitudeScale.scaleOffset.x * this.mmPerPixel;
-		let y1: number = altitudeScale.draggableY;
-		let x2: number = (useLowMach) ? keasLowScale.scaleOffset.x * this.mmPerPixel : keasHighScale.scaleOffset.x * this.mmPerPixel;
-		let x3: number = (useLowMach) ? machLow.scaleOffset.x * this.mmPerPixel : machHigh.scaleOffset.x * this.mmPerPixel;
-		let y3: number = (useMin) ?machLow.scaleOffset.y * this.mmPerPixel : 
-			(machLow.scaleOffset.y + machLow.mmHeight) * this.mmPerPixel;
-		let slope: number = (y3 - y1) / (x3 - x1);
-		return (slope * (x2 - x1)) + y1;
-	}
-
-		private getLowMach(altitudeY: number, speedLowY: number): number
-	{
-		let altitudeScale: AbstractScale | undefined = this.scales.get("altitudeScale");
-		let keasLowScale: AbstractScale | undefined = this.scales.get("keasLowScale");
-		let machLow: AbstractScale | undefined = this.scales.get("machLow");
-
-		if (!altitudeScale || !keasLowScale || !machLow) return 0.0;
-		let altX: number = altitudeScale.scaleOffset.x * this.mmPerPixel;
-		let altY: number = altitudeY;
-		let speedLowX: number = keasLowScale.scaleOffset.x * this.mmPerPixel;
-		let slope: number = (speedLowY - altY) / (speedLowX - altX);
-		let machLowX: number = machLow.scaleOffset.x * this.mmPerPixel;
-		let machLowinterceptY: number = speedLowY + (slope * (machLowX - speedLowX));
-		
-		return machLow.getDataPointForSlideValue(machLowinterceptY);
-	}
-	
-	private getHighMach(altitudeY: number, speedHighY: number): number
-	{
-		let altitudeScale: AbstractScale | undefined = this.scales.get("altitudeScale");
-		let keasHighScale: AbstractScale | undefined = this.scales.get("keasHighScale");
-		let machHigh: AbstractScale | undefined = this.scales.get("machHigh");
-
-		if (!altitudeScale || !keasHighScale || !machHigh) return 0.0;
-
-		let altX: number = altitudeScale.scaleOffset.x * this.mmPerPixel;
-		let altY: number = altitudeY;
-		let speedHighX: number =keasHighScale.scaleOffset.x * this.mmPerPixel;
-		let slope: number = (speedHighY - altY) / (speedHighX - altX);
-		let machHighX: number = machHigh.scaleOffset.x * this.mmPerPixel;
-		let machHighinterceptY: number = speedHighY + (slope * (machHighX - speedHighX));
-		
-		return machHigh.getDataPointForSlideValue(machHighinterceptY);
-	}
-
-	private calcAltitudeYForMachY(useMin: boolean, useLowMach: boolean): number
-	{
-		let altitudeScale: AbstractScale | undefined = this.scales.get("altitudeScale");
-		let keasLowScale: AbstractScale | undefined = this.scales.get("keasLowScale");
-		let keasHighScale: AbstractScale | undefined = this.scales.get("keasHighScale");
-		let machLow: AbstractScale | undefined = this.scales.get("machLow");
-		let machHigh: AbstractScale | undefined = this.scales.get("machHigh");
-
-		if (!altitudeScale || !keasLowScale || !keasHighScale || !machLow || !machHigh) return 0;
-
-		let x1: number = altitudeScale.scaleOffset.x * this.mmPerPixel;
-		let x2: number = (useLowMach) ? keasLowScale.scaleOffset.x * this.mmPerPixel : keasHighScale.scaleOffset.x * this.mmPerPixel;
-		let y2: number = (useLowMach) ? keasLowScale.draggableY : keasHighScale.draggableY;
-		let x3: number = (useLowMach) ? machLow.scaleOffset.x * this.mmPerPixel : machHigh.scaleOffset.x * this.mmPerPixel;
-		let y3: number = (useMin) ? machLow.scaleOffset.y * this.mmPerPixel : 
-			(machLow.scaleOffset.y + machLow.mmHeight) * this.mmPerPixel;
-		let slope = (y3 - y2) / (x3 - x2);
-		return y2 - ((x2 - x1) * slope);
-	}
-
-	private clampToscale(altitudeDragX: number, altitudeDragY: number, keasLowDragX: number, keasLowDragY: number, keasHighDragX: number, keasHighDragY: number): number
-	{
-		let slope: number = 0;
-		let bias: number = .1;
-		let altitudeScale: AbstractScale | undefined = this.scales.get("altitudeScale");
-		let keasLowScale: AbstractScale | undefined = this.scales.get("keasLowScale");
-		let keasHighScale: AbstractScale | undefined = this.scales.get("keasHighScale");
-		let machLow: AbstractScale | undefined = this.scales.get("machLow");
-		let machHigh: AbstractScale | undefined = this.scales.get("machHigh");
-
-		if (altitudeScale && altitudeScale.isShowDraggable() && keasLowScale && keasLowScale.isShowDraggable() && machLow)
-		{
-			let x1: number = altitudeDragX;
-			let y1: number = altitudeDragY;
-			let x2: number = keasLowDragX;
-			let y2: number = keasLowDragY;
-			slope = (y2 - y1) / (x2 - x1);
-			let x3: number = 76 * this.mmPerPixel;
-			let y3: number = (slope * (x3 - x2)) + y2;
-			let offsetY: number = this.mmPerPixel * machLow.scaleOffset.y;
-			
-			if (y3 < offsetY + (this.mmPerPixel*machLow.mmStartOffset - bias))
-			{
-				return -1;
-			}
-			else if (y3 > offsetY + (machLow.mmHeight*this.mmPerPixel) + bias)
-			{
-				return 1;
-			}
-			
-		}
-		else if (altitudeScale && altitudeScale.isShowDraggable() && keasHighScale && keasHighScale.isShowDraggable() && machHigh)
-		{
-			let x1: number = altitudeDragX;
-			let y1: number = altitudeDragY;
-			let x2: number = keasHighDragX;
-			let y2: number = keasHighDragY;
-			slope = (y2 - y1) / (x2 - x1);
-			let x3: number = 76 * this.mmPerPixel;
-			let y3: number = (slope * (x3 - x2)) + y2;
-			
-			let offsetY = this.mmPerPixel * machHigh.scaleOffset.y;
-			
-			if (y3 < offsetY + (this.mmPerPixel*machHigh.mmStartOffset) - bias)
-			{
-				return -1;
-			}
-			else if (y3 > offsetY + (machHigh.mmHeight*this.mmPerPixel) + bias)
-			{
-				return 1;
-			}
-		}
-		
-		return 0;
 	}
 
 	public handleMouseUp(x: number, y: number)
 	{
 		this.isDragging = false;
-		let altitudeScale: AbstractScale | undefined = this.scales.get("altitudeScale");
-		let speedLow: AbstractScale | undefined = this.scales.get("speedLow");
-		let speedHigh: AbstractScale | undefined = this.scales.get("speedHigh");
 
-		if (altitudeScale) altitudeScale.isDragging= false;
-		if (speedLow) speedLow.isDragging= false;
-		if (speedHigh) speedHigh.isDragging= false;
+		let wingLoadScale: AbstractScale | undefined = this.scales.get("wingLoadScale");
+		let keasLowScale: AbstractScale | undefined = this.scales.get("keasLowScale");
+		let keasHighScale: AbstractScale | undefined = this.scales.get("keasHighScale");
+
+		if (wingLoadScale) wingLoadScale.isDragging= false;
+		if (keasLowScale) keasLowScale.isDragging= false;
+		if (keasHighScale) keasHighScale.isDragging= false;
 	}
-
-	private isInRect= (x: number, y: number, dimensions: Rectangle2D) => {
-    	return x >= dimensions.getMinX() && x <= dimensions.getMaxX() && y >= dimensions.getMinY() && x <= dimensions.getMaxY();
-  	};
 
 	public handleMouseDown(x: number, y: number)
 	{
@@ -606,37 +374,42 @@ export class Chart3 extends Chart
 			return;
 		}
 		this.isDragging = false;
-		let altitudeScale: AbstractScale | undefined = this.scales.get("altitudeScale");
+		let wingLoadScale: AbstractScale | undefined = this.scales.get("wingLoadScale");
 		let keasLowScale: AbstractScale | undefined = this.scales.get("keasLowScale");
 		let keasHighScale: AbstractScale | undefined = this.scales.get("keasHighScale");
 
-		if (altitudeScale && altitudeScale.containsClick(x, y))
+		if (wingLoadScale && wingLoadScale.containsClick(x, y))
 		{
-			altitudeScale.showDraggable = !altitudeScale.isShowDraggable();
+			wingLoadScale.showDraggable = !wingLoadScale.isShowDraggable();
 		}
-		else if (keasLowScale && keasLowScale.containsClick(x, y) && keasHighScale)
+		else if (keasHighScale && keasLowScale && keasLowScale.containsClick(x, y))
 		{
-			keasHighScale.showDraggable = false;
 			keasLowScale.showDraggable = !keasLowScale.isShowDraggable();
+			if (keasLowScale.isShowDraggable())
+			{
+				keasHighScale.showDraggable = false;
+			}
 		}
-		else if (keasHighScale && keasHighScale.containsClick(x, y) && keasLowScale)
+		else if (keasLowScale && keasHighScale && keasHighScale.containsClick(x, y))
 		{
-			keasLowScale.showDraggable = false;
 			keasHighScale.showDraggable = !keasHighScale.isShowDraggable();
+			if (keasHighScale.isShowDraggable())
+			{
+				keasLowScale.showDraggable = false;
+			}
 		}
 		else 
 		{
 			return;
 		}
 		
-		this.draw(1.0);
 		this.drawLines();
 	}
 
 	protected init(): void 
 	{
-		// this.scales.set("wingLoadScale", this.initWingLoadScale());
-		// this.scales.set("qScale", this.initQScale());
+		this.scales.set("wingLoadScale", this.initWingLoadScale());
+		this.scales.set("qScale", this.initQScale());
 		this.scales.set("keasLowScale", this.initKeasLowScale());
 		this.scales.set("keasHighScale", this.initKeasHighScale());
 	}

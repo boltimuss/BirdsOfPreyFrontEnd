@@ -348,19 +348,19 @@ export class Chart1 extends Chart
 		let keasLowScale: AbstractScale | undefined = this.scales.get("keasLowScale");
 		let keasHighScale: AbstractScale | undefined = this.scales.get("keasHighScale");
 
-		if (altitudeScale && !altitudeScale.isDragging && altitudeScale.isDraggingDot(x, y, this.scaleMargin))
+		if (altitudeScale && !altitudeScale.isDragging && altitudeScale.isDraggingDot(x, y, this.scaleMargin, true))
 		{
 			altitudeScale.isDragging = true;
 			if (speedHigh) speedHigh.isDragging = false;
 			if (speedLow) speedLow.isDragging = false;
 		}
-		else if (speedLow && !speedLow.isDragging && speedLow.isDraggingDot(x, y, this.scaleMargin))
+		else if (speedLow && !speedLow.isDragging && speedLow.isDraggingDot(x, y, this.scaleMargin, true))
 		{
 			speedLow.isDragging = true;
 			if (speedHigh) speedHigh.isDragging = false;
 			if (altitudeScale) altitudeScale.isDragging = false;
 		}
-		else if (speedHigh && !speedHigh.isDragging && speedHigh.isDraggingDot(x, y, this.scaleMargin))
+		else if (speedHigh && !speedHigh.isDragging && speedHigh.isDraggingDot(x, y, this.scaleMargin, true))
 		{
 			speedHigh.isDragging = true;
 			if (speedLow) speedLow.isDragging = false;
