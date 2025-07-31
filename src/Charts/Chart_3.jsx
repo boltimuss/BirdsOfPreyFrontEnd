@@ -48,10 +48,20 @@ function Chart_3() {
     let x = (event.clientX - rect.left) * scaleX;
     let y = (event.clientY - rect.top) * scaleY;
     chart3.current.handleMouseMove(x, y);
+    if (!chart3.current.isDragging) return;
     setGameState(prev => {
-      const newAircraftStates = new Map(prev.aircraftStates);
-      newAircraftStates.set(chart3.current.gameState.currentAircraftId, chart3.current.gameState.aircraftStates.get(chart3.current.gameState.currentAircraftId));
-      return { ...prev, aircraftStates: newAircraftStates };
+
+      if (prev) {
+        const newAircraftStates = new Map(prev.aircraftStates);
+        newAircraftStates.set(chart3.current.gameState.currentAircraftId, chart3.current.gameState.aircraftStates.get(chart3.current.gameState.currentAircraftId));
+        return { ...prev, currentAircraftId: chart3.current.gameState.currentAircraftId, aircraftStates: newAircraftStates };
+      }
+      else
+      {
+        const newAircraftStates = new Map();
+        newAircraftStates.set(chart3.current.gameState.currentAircraftId, chart3.current.gameState.aircraftStates.get(chart3.current.gameState.currentAircraftId));
+        return {currentAircraftId: chart3.current.gameState.currentAircraftId, aircraftStates: newAircraftStates};
+      }
     });
   };
 

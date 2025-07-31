@@ -24,8 +24,8 @@ export abstract class AbstractScale implements Scale
     clickZone: Rectangle2D;
     draggableOffset: Point2D = new Point2D(0, 0);
     mouseSceneOffset:Point2D = new Point2D(0, 0);
-    draggableX: number = -99;
-    draggableY: number = -99;
+    draggableX: number = -9999999;
+    draggableY: number = -9999999;
 
     constructor()
     {

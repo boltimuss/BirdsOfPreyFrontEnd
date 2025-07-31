@@ -1,5 +1,4 @@
 import { Chart } from "../Chart";
-import { GameState } from "../../State/GameState";
 import { Section } from "../Section";
 import { NomographCharacteristics } from "../NomographCharacteristics";
 import { Point2D } from "../SupportObjects/Point2D";
@@ -9,7 +8,6 @@ import { ShadedRegion } from "../ShadedRegion";
 import { AbstractScale } from "../Scale/AbstractScale"; 
 import { LabelSide } from "../LabelSide";
 import { VerticalScale } from "../Scale/VerticalScale";
-import { HorizontalScale } from "../Scale/HorizontalScale";
 import { SlantScale } from "../Scale/SlantScale";
 
 export class Chart4 extends Chart
@@ -25,9 +23,9 @@ export class Chart4 extends Chart
 		this.draw(1.0);
 		let maxLiftScale: AbstractScale | undefined = this.scales.get("maxLiftScale");
 		let aeroLoadLimit: AbstractScale | undefined = this.scales.get("aeroLoadLimit");
-
 		if (maxLiftScale && aeroLoadLimit && maxLiftScale.isShowDraggable())
 		{
+
 			let x1: number = maxLiftScale.draggableX;
 			let y1: number = maxLiftScale.draggableY;
 			let currentAircraftId: string = this.gameState.currentAircraftId;
@@ -36,7 +34,15 @@ export class Chart4 extends Chart
 			let slope: number = (y2 - y1) / (x2 - x1);
 			let x3: number = aeroLoadLimit.scaleOffset.x * this.mmPerPixel;
 			let y3: number = (slope * (x3 - x2)) + y2;
-			
+
+			// let clampResult: number = this.clampToscale(maxLiftScale.draggableX, maxLiftScale.draggableY);
+			// if (clampResult < 0)
+			// {
+			// 	maxLiftScale.draggableY = this.calcMaxLiftYForAeroLoadLimitY();
+			// 	y1 = this.calcMaxLiftYForAeroLoadLimitY();
+			// 	y3 = aeroLoadLimit.scaleOffset.y * this.mmPerPixel;
+			// }
+
 			this.ctx.setLineWidth(1);
 			this.ctx.strokeLine(x1, y1, x2, y2);
 			this.ctx.strokeLine(x2, y2, x3, y3);
@@ -225,27 +231,75 @@ export class Chart4 extends Chart
 			let offsetY: number = this.mmPerPixel * maxLiftScale.scaleOffset.y;
 			if (y < offsetY + (this.mmPerPixel*maxLiftScale.mmStartOffset)) return;
 			else if (y > offsetY + maxLiftScale.mmHeight*this.mmPerPixel) return;
-			maxLiftScale.draggableY = y;
+			let clampResult: number = this.clampToscale(maxLiftScale.draggableX, maxLiftScale.draggableY);
+			if (clampResult >= 0 || y <=  this.calcMaxLiftYForAeroLoadLimitY())
+			{
+				maxLiftScale.draggableY = y;
+			}
 		}
 		else
 		{
+			this.noClick = false;
 			return;
 		}
-
+			
 		this.drawLines();
+	}
+
+	private calcMaxLiftYForAeroLoadLimitY(): number
+	{
+		let maxLiftScale: AbstractScale | undefined = this.scales.get("maxLiftScale");
+		let aeroLoadLimit: AbstractScale | undefined = this.scales.get("aeroLoadLimit");
+
+		if (!maxLiftScale || !aeroLoadLimit) return 0;
+
+		let currentAircraftId: string = this.gameState.currentAircraftId;
+		let x1: number = aeroLoadLimit.scaleOffset.x * this.mmPerPixel;
+		let y1: number = aeroLoadLimit.scaleOffset.y * this.mmPerPixel;
+		let x2: number = this.gameState.aircraftStates.get(currentAircraftId)["q-point"].x;
+		let y2: number = this.gameState.aircraftStates.get(currentAircraftId)["q-point"].y;
+		let x3: number = maxLiftScale.scaleOffset.x * this.mmPerPixel;
+		let slope = (y2 - y1) / (x2 - x1);
+		return ((x3 - x2) * slope) + y2;
+	}
+
+	private clampToscale(maxLiftDragX: number, maxLiftDragY: number): number
+	{
+
+		let aeroLoadLimit: AbstractScale | undefined = this.scales.get("aeroLoadLimit"); 
+
+		if (aeroLoadLimit) 
+		{
+			let currentAircraftId: string = this.gameState.currentAircraftId;
+			let x3: number = maxLiftDragX;
+			let y3: number = maxLiftDragY;
+			let x2: number = this.gameState.aircraftStates.get(currentAircraftId)["q-point"].x;
+			let y2: number = this.gameState.aircraftStates.get(currentAircraftId)["q-point"].y;
+			let x1: number = aeroLoadLimit.scaleOffset.x * this.mmPerPixel;
+			let slope: number = (y3 - y2) / (x3 - x2);
+			let y1: number = y2 - (slope * (x2 - x1));
+
+			let offsetY =  this.mmPerPixel * aeroLoadLimit.scaleOffset.y;
+
+			if (y1 < offsetY + (this.mmPerPixel*aeroLoadLimit.mmStartOffset))
+			{
+				return -1;
+			}
+			else if (y1 > offsetY + (aeroLoadLimit.mmHeight*this.mmPerPixel))
+			{
+				return 1;
+			}
+		}
+		
+		return 0;
 	}
 
 	public handleMouseUp(x: number, y: number)
 	{
 		this.isDragging = false;
+		let maxLiftScale: AbstractScale | undefined = this.scales.get("maxLiftScale");
 
-		let wingLoadScale: AbstractScale | undefined = this.scales.get("wingLoadScale");
-		let keasLowScale: AbstractScale | undefined = this.scales.get("keasLowScale");
-		let keasHighScale: AbstractScale | undefined = this.scales.get("keasHighScale");
-
-		if (wingLoadScale) wingLoadScale.isDragging= false;
-		if (keasLowScale) keasLowScale.isDragging= false;
-		if (keasHighScale) keasHighScale.isDragging= false;
+		if (maxLiftScale) maxLiftScale.isDragging= false;
 	}
 
 	public handleMouseDown(x: number, y: number)

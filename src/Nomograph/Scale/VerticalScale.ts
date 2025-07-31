@@ -205,8 +205,8 @@ export class VerticalScale extends AbstractScale
 		// show the draggable notch
 		let offsetX: number = this.mmPerPixel * this.scaleOffset.x;
 		let offsetY: number = this.mmPerPixel * this.scaleOffset.y;
-		if (this.draggableX == -99) this.draggableX = offsetX + (this.mmPerPixel * this.draggableOffset.x);
-		if (this.draggableY == -99) this.draggableY = offsetY + (this.mmPerPixel * this.mmStartOffset) + (this.mmPerPixel * this.draggableOffset.y);
+		if (this.draggableX == -9999999) this.draggableX = offsetX + (this.mmPerPixel * this.draggableOffset.x);
+		if (this.draggableY == -9999999) this.draggableY = offsetY + (this.mmPerPixel * this.mmStartOffset) + (this.mmPerPixel * this.draggableOffset.y);
 		
 		if (this.showDraggable)
 		{

@@ -39,11 +39,6 @@ function Chart_4() {
     let y = (event.clientY - rect.top) * scaleY;
     chart4.current.gameState = gameState;
     chart4.current.handleMouseDown(x, y);
-    setGameState(prev => {
-      const newAircraftStates = new Map(prev.aircraftStates);
-      newAircraftStates.set(chart4.current.gameState.currentAircraftId, chart4.current.gameState.aircraftStates.get(chart4.current.gameState.currentAircraftId));
-      return { ...prev, aircraftStates: newAircraftStates };
-    });
   };
 
   const handleMouseClick = (event) => {
@@ -66,6 +61,11 @@ function Chart_4() {
     let x = (event.clientX - rect.left) * scaleX;
     let y = (event.clientY - rect.top) * scaleY;
     chart4.current.handleMouseMove(x, y);
+        // setGameState(prev => {
+    //   const newAircraftStates = new Map(prev.aircraftStates);
+    //   newAircraftStates.set(chart4.current.gameState.currentAircraftId, chart4.current.gameState.aircraftStates.get(chart4.current.gameState.currentAircraftId));
+    //   return { ...prev, aircraftStates: newAircraftStates };
+    // });
   };
 
   const handleMouseUp = (event) => {

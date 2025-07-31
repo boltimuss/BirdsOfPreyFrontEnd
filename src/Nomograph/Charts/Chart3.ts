@@ -71,9 +71,9 @@ export class Chart3 extends Chart
 			let xInt = (intersectionPt) ? intersectionPt.x + xOffset : 0;
 			let yInt = (intersectionPt) ? y2 - intersectionPt.y: 0;
 			
-			// String currentAircraftId = GameState.getInstanceOf().getCurrentAircraft();
-			// GameState.getInstanceOf().getAircraftState().get(currentAircraftId).setQPoint(new Point2D(xInt, yInt));
-			
+			let currentAircraftId: string = this.gameState.currentAircraftId;
+			this.gameState.aircraftStates.set(currentAircraftId, {"q-point": new Point2D(xInt, yInt)});
+
 			this.ctx.setLineWidth(1);
 			this.ctx.strokeLine(x1, y1, x2, y2);
 			wingLoadScale.drawDraggableNotch(this.ctx);
