@@ -1,7 +1,7 @@
 export class GameState {
 
 	private static instance: GameState;
-	aircraftState = new Map();
+	aircraftStates = new Map();
 	currentAircraft: string;
 	
 	public static getInstanceOf(): GameState

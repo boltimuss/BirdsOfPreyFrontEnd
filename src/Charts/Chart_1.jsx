@@ -1,6 +1,8 @@
 import React, { useRef, useEffect } from 'react';
 import { Chart1 } from '../Nomograph/Charts/Chart1.ts';
 import { Rectangle2D } from '../Nomograph/SupportObjects/Rectangle2D.ts';
+import { useContext } from 'react';
+import { GameStateCtx } from '../GameState.jsx'
 
 function Chart_1() {
 
@@ -15,6 +17,8 @@ function Chart_1() {
     canvasRef.current.addEventListener('click', handleMouseClick);
   }, []);  
 
+  const { gameState, setGameState } = useContext(GameStateCtx);
+
   const handleMouseDown = (event) => {
     
     const rect = canvasRef.current.getBoundingClientRect();
@@ -24,6 +28,7 @@ function Chart_1() {
     let x = (event.clientX - rect.left) * scaleX;
     let y = (event.clientY - rect.top) * scaleY;
     chart1.current.handleMouseDown(x, y);
+    setGameState(chart1.gameState)
   };
 
   const handleMouseClick = (event) => {
@@ -63,7 +68,7 @@ function Chart_1() {
     const canvas = canvasRef.current;
     if (canvas && chart1.current == null) {
       const ctx = canvas.getContext('2d');
-      chart1.current = new Chart1(new Rectangle2D(0, 0, 450, 450), ctx);
+      chart1.current = new Chart1(new Rectangle2D(0, 0, 450, 450), ctx, gameState);
       chart1.current.init();
     }
   };

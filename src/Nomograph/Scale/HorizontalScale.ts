@@ -187,7 +187,7 @@ export class HorizontalScale extends AbstractScale
 				gc.setFill("white");
 				gc.fillRect(posOffsetX + offsetX + this.label.stepNumLocation.x + 9, posOffsetY + offsetY + this.label.stepNumLocation.y + 1, 24, 14);
 				
-				gc.setFill("white");
+				gc.setFill(this.label.stepNumColor);
 				gc.font("10px Sans");
 				gc.fillText(this.label.stepNum, posOffsetX + offsetX +this. label.stepNumLocation.x + 1, posOffsetY + offsetY + this.label.stepNumLocation.y + 11);
 				gc.translate(offsetX + this.label.stepNumLocation.x, offsetY + this.label.stepNumLocation.y);
@@ -202,7 +202,7 @@ export class HorizontalScale extends AbstractScale
 				gc.save();
 				gc.setFill(this.label.labelColor);
 				gc.fillOval(offsetX + this.label.stepNumLocation.x, offsetY + this.label.stepNumLocation.y, 11, 11);
-				gc.setFill("white");
+				gc.setFill(this.label.stepNumColor);
 				gc.font("14px Sans Bold");
 				gc.fillText(this.label.stepNum, offsetX +this.label.stepNumLocation.x - 7, offsetY + this.label.stepNumLocation.y + 5);
 				gc.translate(offsetX + this.label.stepNumLocation.x, offsetY + this.label.stepNumLocation.y);

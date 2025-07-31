@@ -43,8 +43,8 @@ export class Chart3 extends Chart
 			let xInt: number = (intersectionPt) ? intersectionPt.x + xOffset : 0;
 			let yInt: number = (intersectionPt) ? y2 - intersectionPt.y : 0;
 			
-			// String currentAircraftId = GameState.getInstanceOf().getCurrentAircraft();
-			// GameState.getInstanceOf().getAircraftState().get(currentAircraftId).setQPoint(new Point2D(xInt, yInt));
+			let currentAircraftId: string = this.gameState.currentAircraftId;
+			this.gameState.aircraftStates.set(currentAircraftId, {"q-point": new Point2D(xInt, yInt)});
 			
 			this.ctx.setLineWidth(1);
 			this.ctx.strokeLine(x1, y1, x2, y2);
@@ -144,6 +144,7 @@ export class Chart3 extends Chart
 				.setRotation(-90)
 				.setLabelColor("brown")
 				.setStepNum(" 3")
+				.setStepNumColor("white")
 				.setScaleLocation(new Point2D(-350, 280))
 				.setStepNumLocation(new Point2D(-370, 275)));
 		
@@ -237,6 +238,7 @@ export class Chart3 extends Chart
 				.setDrawValue(false)
 				.setLabel("KEAS")
 				.setLabelColor("brown")
+				.setStepNumColor("white")
 				.setStepNum(" 3")
 				.setScaleLocation(new Point2D(390, 50))
 				.setScaleOffset(new Point2D(10, 0))
@@ -278,6 +280,7 @@ export class Chart3 extends Chart
 				.setDrawValue(false)
 				.setLabel("Wing-Load")
 				.setLabelColor("brown")
+				.setStepNumColor("white")
 				.setStepNum(" 3")
 				.setScaleLocation(new Point2D(180, -46))
 				.setScaleOffset(new Point2D(122, 10))

@@ -150,6 +150,7 @@ export class Chart2 extends Chart
 				.setLabel("Altitude")
 				.setLabelColor("rgb(255, 15, 0)")
 				.setStepNum(" 2")
+				.setStepNumColor("white")
 				.setScaleLocation(new Point2D(6, -8))
 				.setStepNumLocation(new Point2D(2, -25)));
 		
@@ -229,6 +230,7 @@ export class Chart2 extends Chart
 				.setLabel("KEAS")
 				.setLabelColor("rgb(255, 15, 0)")
 				.setStepNum(" 2")
+				.setStepNumColor("white")
 				.setScaleLocation(new Point2D(26, -6))
 				.setScaleOffset(new Point2D(10, 0))
 				.setStepNumLocation(new Point2D(2, -25)));
@@ -308,6 +310,7 @@ export class Chart2 extends Chart
 				.setLabel("Mach")
 				.setLabelColor("rgb(255,15,0)")
 				.setStepNum(" 2")
+				.setStepNumColor("white")
 				.setScaleLocation(new Point2D(-35, -6))
 				.setScaleOffset(new Point2D(-10, 0))
 				.setStepNumLocation(new Point2D(-40, -25)));

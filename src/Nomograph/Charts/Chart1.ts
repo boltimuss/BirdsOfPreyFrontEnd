@@ -103,14 +103,14 @@ export class Chart1 extends Chart
 		{
 			let value:number = this.getKeasHigh(altitudeScale.getPointForSlideValue(altitude).y, speedHigh.getPointForSlideValue(speedHighValue).y);
 			let currentAircraftId: string  = GameState.getInstanceOf().currentAircraft;
-			GameState.getInstanceOf().aircraftState.get(currentAircraftId).setKeas(value);
+			GameState.getInstanceOf().aircraftStates.get(currentAircraftId).setKeas(value);
 			return value;
 		}
 		else if (altitudeScale !== undefined && speedLow !== undefined)
 		{
 			let value: number = this.getKeasLow(altitudeScale.getPointForSlideValue(altitude).y, speedLow.getPointForSlideValue(speedLowValue).y);
 			let currentAircraftId: string  = GameState.getInstanceOf().currentAircraft;
-			GameState.getInstanceOf().aircraftState.get(currentAircraftId).setKeas(value);
+			GameState.getInstanceOf().aircraftStates.get(currentAircraftId).setKeas(value);
 			return value;
 		}
 	}
@@ -156,6 +156,7 @@ export class Chart1 extends Chart
 				.setLabel("Altitude")
 				.setLabelColor("brown")
 				.setStepNum(" 1")
+				.setStepNumColor("white")
 				.setScaleLocation(new Point2D(6, -8))
 				.setStepNumLocation(new Point2D(2, -25)));
 		
@@ -207,6 +208,7 @@ export class Chart1 extends Chart
 				.setDrawValue(true)
 				.setLabel("KEAS")
 				.setLabelColor("brown")
+				.setStepNumColor("white")
 				.setStepNum("1")
 				.setScaleLocation(new Point2D(13, -6))
 				.setStepNumLocation(new Point2D(0, -25)));
@@ -248,6 +250,7 @@ export class Chart1 extends Chart
 				.setLabel("KEAS")
 				.setLabelColor("brown")
 				.setStepNum("1")
+				.setStepNumColor("white")
 				.setScaleLocation(new Point2D(13, -6))
 				.setScaleOffset(new Point2D(14, 0))
 				.setStepNumLocation(new Point2D(0, -25)));
@@ -327,6 +330,7 @@ export class Chart1 extends Chart
 				.setLabel("Speed")
 				.setLabelColor("brown")
 				.setStepNum(" 1")
+				.setStepNumColor("white")
 				.setScaleLocation(new Point2D(-40, -30))
 				.setStepNumLocation(new Point2D(2, -23)));
 		
@@ -380,7 +384,7 @@ export class Chart1 extends Chart
 				if (keasLowScale) keasLowScale.value = this.getKeasLow(altitudeScale.draggableY, speedLow.draggableY);
 				if (keasHighScale) keasHighScale.value = 0.0;
 
-				// let currentAircraftId: string = GameState.getInstanceOf().currentAircraft;
+				let currentAircraftId: string = GameState.getInstanceOf().currentAircraft;
 				// GameState.getInstanceOf().getAircraftState().get(currentAircraftId).setKeas(getScales().get("keasLowScale").getValue());
 			}
 			else if (speedHigh && speedHigh.showDraggable)

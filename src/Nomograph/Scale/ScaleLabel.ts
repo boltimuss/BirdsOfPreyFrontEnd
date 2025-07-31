@@ -7,6 +7,8 @@ export class ScaleLabel {
 	drawValue: boolean;
 	stepNum: string;
 	stepNumLocation: Point2D;
+	stepNumTextLocation: Point2D;
+	stepNumColor: string;
 	scaleLocation: Point2D;
 	scaleOffset: Point2D;
 	rotation: number = 0;
@@ -14,6 +16,13 @@ export class ScaleLabel {
 	public static builder(): ScaleLabel
 	{
 		return new ScaleLabel();
+	}
+
+	public setStepNumColor(color: string): ScaleLabel
+	{
+		this.stepNumColor = color;
+		return this;
+
 	}
 
 	public setLabelColor(labelColor: string): ScaleLabel
@@ -40,6 +49,13 @@ export class ScaleLabel {
 	public setStepNum(stepNum: string): ScaleLabel
 	{
 		this.stepNum = stepNum;
+		return this;
+
+	}
+
+	public setStepNumTextLocation(location: Point2D): ScaleLabel
+	{
+		this.stepNumTextLocation = location;
 		return this;
 
 	}

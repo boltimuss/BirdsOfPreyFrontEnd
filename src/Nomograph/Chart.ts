@@ -2,18 +2,20 @@ import { Rectangle2D } from "./SupportObjects/Rectangle2D";
 import { Point2D } from './SupportObjects/Point2D';
 import { GraphicsContext } from "./SupportObjects/GraphicsContext";
 import { AbstractScale } from "./Scale/AbstractScale" 
+import { GameState } from "../State/GameState";
 
 export abstract class Chart
 {
     wasDragged: boolean;
 	mmPerPixel: number;
-	scales = new Map<string, AbstractScale>();
+	scales = new Map<string, AbstractScale>(); 
 	width: number;
 	height: number;
 	ctx: GraphicsContext;
 	scaleMargin: number = 12;
+	gameState:  { aircraftStates: Map<string, any>, currentAircraftId: string};
 	
-	constructor(dimensions: Rectangle2D, canvas: any)
+	constructor(dimensions: Rectangle2D, canvas: any, gameState: { aircraftStates: Map<string, any>, currentAircraftId: string})
 	{
 		this.width = dimensions.getWidth();
 		this.height = dimensions.getHeight();
@@ -23,6 +25,7 @@ export abstract class Chart
 		this.ctx.setTransform(1, 0, 0, 1, 0, 0);
 		this.ctx.translate(this.scaleMargin * this.mmPerPixel, 0);
 		this.init(this.ctx);
+		this.gameState = gameState;
 		this.draw(1.0);
 
 	}
@@ -51,7 +54,7 @@ export abstract class Chart
 		for (let s of this.scales.values()) s.drawDraggableNotch(this.ctx);
 		
 		// this.ctx.setFill("rgb(255,0,0,0.5)");
-		// this.ctx.fillRect(8 * this.mmPerPixel, 166 * this.mmPerPixel, 148 * this.mmPerPixel, 8 * this.mmPerPixel);
+		// this.ctx.fillRect((136+this.scaleMargin) * this.mmPerPixel, 18 * this.mmPerPixel, 6 * this.mmPerPixel, 148 * this.mmPerPixel);
 	}
 
 	public abstract drawLines(): void;

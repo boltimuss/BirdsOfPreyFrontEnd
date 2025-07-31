@@ -183,7 +183,7 @@ export class SlantScale extends AbstractScale
 				gc.setFill("white");
 				gc.fillRect(posOffsetX + offsetX + this.label.stepNumLocation.x + 15, posOffsetY + offsetY + this.label.stepNumLocation.y + 1, 18, 14);
 				
-				gc.setFill("white");
+				gc.setFill(this.label.stepNumColor);
             	gc.font('bold 14px Arial');
 				gc.fillText(this.label.stepNum, posOffsetX + offsetX +this. label.stepNumLocation.x + 1, posOffsetY + offsetY + this.label.stepNumLocation.y + 11);
 				gc.translate(offsetX + this.label.stepNumLocation.x, offsetY + this.label.stepNumLocation.y);
@@ -198,7 +198,7 @@ export class SlantScale extends AbstractScale
 				gc.save();
 				gc.setFill(this.label.labelColor);
 				gc.fillOval(offsetX + this.label.stepNumLocation.x, offsetY + this.label.stepNumLocation.y, 11, 11);
-				gc.setFill("white");
+				gc.setFill(this.label.stepNumColor);
             	gc.font('14px Arial');
 				gc.fillText(this.label.stepNum, posOffsetX + offsetX +this. label.stepNumLocation.x - 7, posOffsetY + offsetY + this.label.stepNumLocation.y + 5);
 				gc.translate(offsetX + this.label.stepNumLocation.x, offsetY + this.label.stepNumLocation.y);

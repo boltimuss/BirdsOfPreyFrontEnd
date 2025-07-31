@@ -1,21 +1,33 @@
 import React, { useRef, useEffect, useContext } from 'react';
-import { Chart3 } from '../Nomograph/Charts/Chart3.ts';
+import { Chart4 } from '../Nomograph/Charts/Chart4.ts';
 import { Rectangle2D } from '../Nomograph/SupportObjects/Rectangle2D.ts';
-import { GameStateCtx } from '../GameState.jsx';
-function Chart_3() {
+import { GameStateCtx } from '../GameState.jsx'
 
-  const canvasRef = useRef(null); 
-  const chart3 = useRef(null);
+function Chart_4() {
+
+  const canvasRef = useRef(null);
+  const chart4 = useRef(null);
   const { gameState, setGameState } = useContext(GameStateCtx);
 
   useEffect(() => {
-    draw();
-    canvasRef.current.addEventListener('mousemove', handleMouseMove);
-    canvasRef.current.addEventListener('mousedown', handleMouseDown);
-    canvasRef.current.addEventListener('mouseup', handleMouseUp);
-    canvasRef.current.addEventListener('click', handleMouseClick);
-  }, []);  
 
+    const canvas = canvasRef.current;
+    if (chart4.current)
+    {
+      chart4.current.gameState = gameState;
+      chart4.current.drawLines(); 
+    }
+    else {
+      const ctx = canvas.getContext('2d');
+      chart4.current = new Chart4(new Rectangle2D(0, 0, 900, 900), ctx);
+      chart4.current.init();
+      canvasRef.current.addEventListener('mousemove', handleMouseMove);
+      canvasRef.current.addEventListener('mousedown', handleMouseDown);
+      canvasRef.current.addEventListener('mouseup', handleMouseUp);
+      canvasRef.current.addEventListener('click', handleMouseClick);
+    }
+    
+  }, [gameState]);  
 
   const handleMouseDown = (event) => {
     
@@ -25,7 +37,13 @@ function Chart_3() {
 
     let x = (event.clientX - rect.left) * scaleX;
     let y = (event.clientY - rect.top) * scaleY;
-    chart3.current.handleMouseDown(x, y);
+    chart4.current.gameState = gameState;
+    chart4.current.handleMouseDown(x, y);
+    setGameState(prev => {
+      const newAircraftStates = new Map(prev.aircraftStates);
+      newAircraftStates.set(chart4.current.gameState.currentAircraftId, chart4.current.gameState.aircraftStates.get(chart4.current.gameState.currentAircraftId));
+      return { ...prev, aircraftStates: newAircraftStates };
+    });
   };
 
   const handleMouseClick = (event) => {
@@ -36,7 +54,7 @@ function Chart_3() {
 
     let x = (event.clientX - rect.left) * scaleX;
     let y = (event.clientY - rect.top) * scaleY;
-    chart3.current.handleMouseClick(x, y);
+    chart4.current.handleMouseClick(x, y);
   };
 
   const handleMouseMove = (event) => {
@@ -47,12 +65,7 @@ function Chart_3() {
 
     let x = (event.clientX - rect.left) * scaleX;
     let y = (event.clientY - rect.top) * scaleY;
-    chart3.current.handleMouseMove(x, y);
-    setGameState(prev => {
-      const newAircraftStates = new Map(prev.aircraftStates);
-      newAircraftStates.set(chart3.current.gameState.currentAircraftId, chart3.current.gameState.aircraftStates.get(chart3.current.gameState.currentAircraftId));
-      return { ...prev, aircraftStates: newAircraftStates };
-    });
+    chart4.current.handleMouseMove(x, y);
   };
 
   const handleMouseUp = (event) => {
@@ -63,16 +76,7 @@ function Chart_3() {
 
     let x = (event.clientX - rect.left) * scaleX;
     let y = (event.clientY - rect.top) * scaleY;
-    chart3.current.handleMouseUp(x, y);
-  };
-
-  const draw = () => {
-    const canvas = canvasRef.current;
-    if (canvas && chart3.current == null) {
-      const ctx = canvas.getContext('2d');
-      chart3.current = new Chart3(new Rectangle2D(0, 0, 900, 900), ctx, gameState);
-      chart3.current.init();
-    }
+    chart4.current.handleMouseUp(x, y);
   };
 
   return (
@@ -82,4 +86,4 @@ function Chart_3() {
   );
 }
 
-export default Chart_3
+export default Chart_4
