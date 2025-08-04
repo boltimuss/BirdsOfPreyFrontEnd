@@ -54,7 +54,7 @@ export abstract class Chart
 		for (let s of this.scales.values()) s.drawDraggableNotch(this.ctx);
 		
 		// this.ctx.setFill("rgb(255,0,0,0.5)");
-		// this.ctx.fillRect((136+this.scaleMargin) * this.mmPerPixel, 18 * this.mmPerPixel, 6 * this.mmPerPixel, 148 * this.mmPerPixel);
+		// this.ctx.fillRect(8 * this.mmPerPixel, 157 * this.mmPerPixel, 142 * this.mmPerPixel, 10 * this.mmPerPixel);
 	}
 
 	public abstract drawLines(): void;

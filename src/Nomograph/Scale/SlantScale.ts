@@ -78,6 +78,46 @@ export class SlantScale extends AbstractScale
 
 	}
 
+	public init(): void
+	{
+		this.mmPerPixel = (window.devicePixelRatio * 96)/25.4;
+		let offsetY: number = this.mmPerPixel * this.scaleOffset.y;
+		
+		let currentPixelLocation: number = offsetY + (this.mmStartOffset*this.mmPerPixel * .707);
+		this.sections.forEach((section) =>
+		{
+			section.startLocation = currentPixelLocation;
+			section.endLocation = currentPixelLocation + (section.mmHeight * this.mmPerPixel * .707);
+			currentPixelLocation += (section.mmHeight * this.mmPerPixel * .707);
+		});
+	}
+
+	public getSlideValueForPoint(y: number): number
+	{
+		for (let i=0; i < this.sections.length; i++)
+		{
+			let section: Section = this.sections[i];
+			
+			if (y >= section.startLocation && y <= section.endLocation)
+			{
+				let deltaY: number = Math.abs(section.startLocation - section.endLocation);
+				let deltaValue: number = Math.abs(section.startValue - section.endValue);
+				let percentage: number = Math.abs(y - section.startLocation) / deltaY;
+
+				if (this.charactistics.isDescending)
+				{
+					return section.startValue - (percentage * deltaValue);
+				}
+				else
+				{
+					return (percentage * deltaValue) + section.startValue;
+				}
+			}
+		}
+		
+		return -999;
+	}
+
 	public getPointForSlideValue(dataPoint: number): Point2D
 	{
 		for (let i=0; i < this.sections.length; i++)
@@ -120,7 +160,7 @@ export class SlantScale extends AbstractScale
 		this.sections.forEach((section) =>
 		{
 			let deltaValue = Math.abs(section.startValue - section.endValue) / (section.numDivisions - 1);
-			let deltaPixel = (section.mmWidth * this.mmPerPixel) / (section.numDivisions - 1);
+			let deltaPixel = (section.mmHeight * this.mmPerPixel) / (section.numDivisions - 1);
 			let startValue = section.startValue;
 			let lastIndex = section.numDivisions - 1;
 			
@@ -151,7 +191,7 @@ export class SlantScale extends AbstractScale
 		})
 		
 		gc.restore();
-		
+
 		if (this.label != null)
 		{
 			let posOffsetX: number = (this.label.scaleOffset == null) ? 0 : this.label.scaleOffset.x;
@@ -171,27 +211,27 @@ export class SlantScale extends AbstractScale
 			{
 				gc.save();
 				gc.setFill(this.label.labelColor);
-				gc.fillOval(posOffsetX + offsetX + this.label.stepNumLocation.x-2, posOffsetY + offsetY + this.label.stepNumLocation.y, 16, 16);
+				gc.fillOval(offsetX + this.label.stepNumLocation.x, offsetY + this.label.stepNumLocation.y, 11, 11);
+				gc.setFill(this.label.labelColor);
+				gc.fillOval(offsetX +  this.label.stepNumLocation.x + 49, offsetY + this.label.stepNumLocation.y, 12, 11);
+				gc.setFill("white");
+				gc.fillOval(offsetX +  this.label.stepNumLocation.x + 50, offsetY + this.label.stepNumLocation.y, 10, 10);
 				
 				gc.setFill(this.label.labelColor);
-				gc.fillOval(posOffsetX + offsetX + this.label.stepNumLocation.x + 24, posOffsetY + offsetY + this.label.stepNumLocation.y, 16, 16);
+				gc.fillRect(offsetX +  this.label.stepNumLocation.x + 2, offsetY +  this.label.stepNumLocation.y - 11, 48, 22);
 				gc.setFill("white");
-				gc.fillOval(posOffsetX + offsetX + this.label.stepNumLocation.x + 25, posOffsetY + offsetY + this.label.stepNumLocation.y + 1, 14, 14);
-				
-				gc.setFill(this.label.labelColor);
-				gc.fillRect(posOffsetX + offsetX + this.label.stepNumLocation.x + 8, posOffsetY + offsetY + this.label.stepNumLocation.y, 24, 16);
-				gc.setFill("white");
-				gc.fillRect(posOffsetX + offsetX + this.label.stepNumLocation.x + 15, posOffsetY + offsetY + this.label.stepNumLocation.y + 1, 18, 14);
+				gc.fillRect(offsetX +  this.label.stepNumLocation.x + 8, offsetY +  this.label.stepNumLocation.y - 10, 43, 20);
 				
 				gc.setFill(this.label.stepNumColor);
-            	gc.font('bold 14px Arial');
-				gc.fillText(this.label.stepNum, posOffsetX + offsetX +this. label.stepNumLocation.x + 1, posOffsetY + offsetY + this.label.stepNumLocation.y + 11);
-				gc.translate(offsetX + this.label.stepNumLocation.x, offsetY + this.label.stepNumLocation.y);
+				gc.font("normal 14px Sans");
+				gc.fillText(this.label.stepNum,  offsetX + this.label.stepNumLocation.x - 6, offsetY + this.label.stepNumLocation.y + 5);
 				gc.restore();
 				
 				gc.setFill("black");
-				gc.font("14px Sans Bold");
-				gc.fillText((Math.ceil(this.value * 100) / 100).toFixed(2), posOffsetX + offsetX + this.label.stepNumLocation.x + 10, posOffsetY + offsetY + this.label.stepNumLocation.y + 11);
+				gc.font("bold 13px Sans");
+				
+				gc.fillText((Math.ceil(this.value * 100) / 100).toFixed(2), offsetX + this.label.stepNumLocation.x + 12, offsetY + this.label.stepNumLocation.y + 5);
+
 			}
 			else 
 			{
@@ -199,8 +239,8 @@ export class SlantScale extends AbstractScale
 				gc.setFill(this.label.labelColor);
 				gc.fillOval(offsetX + this.label.stepNumLocation.x, offsetY + this.label.stepNumLocation.y, 11, 11);
 				gc.setFill(this.label.stepNumColor);
-            	gc.font('14px Arial');
-				gc.fillText(this.label.stepNum, posOffsetX + offsetX +this. label.stepNumLocation.x - 7, posOffsetY + offsetY + this.label.stepNumLocation.y + 5);
+				gc.font("14px Sans Bold");
+				gc.fillText(this.label.stepNum, offsetX + this.label.stepNumLocation.x - 6.5, offsetY + this.label.stepNumLocation.y + 5.5);
 				gc.translate(offsetX + this.label.stepNumLocation.x, offsetY + this.label.stepNumLocation.y);
 				gc.restore();
 			}

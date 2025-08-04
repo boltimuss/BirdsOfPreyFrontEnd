@@ -274,7 +274,7 @@ export class Chart3 extends Chart
 				.setCharactistics(characteristics)
 				.setScaleOffset(new Point2D(10, 20))
 				.setDraggableOffset(new Point2D(0,0))
-				.setClickZone(new Rectangle2D(8 * this.mmPerPixel, 10 * this.mmPerPixel, 142 * this.mmPerPixel, 8 * this.mmPerPixel));
+				.setClickZone(new Rectangle2D(8 * this.mmPerPixel, 12 * this.mmPerPixel, 142 * this.mmPerPixel, 8 * this.mmPerPixel));
 		
 		wingLoadScale.setLabel(ScaleLabel.builder()
 				.setDrawValue(false)

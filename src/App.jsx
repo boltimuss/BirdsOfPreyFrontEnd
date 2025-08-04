@@ -3,6 +3,7 @@ import Chart_1 from './Charts/Chart_1.jsx'
 import Chart_2 from './Charts/Chart_2.jsx'
 import Chart_3 from './Charts/Chart_3.jsx'
 import Chart_4 from './Charts/Chart_4.jsx'
+import Chart_12 from './Charts/Chart_12.jsx'
 import { GameStateCtx } from './GameState.jsx'
 import { useState } from 'react'
 
@@ -18,6 +19,7 @@ function App() {
         <div style={{ width: '450px', height: '450px' }}><Chart_2></Chart_2></div>
         <div style={{ width: '625px', height: '700px' }}><Chart_3></Chart_3></div>
         <div style={{ width: '625px', height: '700px' }}><Chart_4></Chart_4></div>
+        <div style={{ width: '625px', height: '700px' }}><Chart_12></Chart_12></div>
       </div>
     </GameStateCtx.Provider>
     </>

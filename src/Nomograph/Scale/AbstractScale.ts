@@ -158,6 +158,11 @@ export abstract class AbstractScale implements Scale
 		return -999;
 	}
 
+	public getSlideValueForPoint(y: number): number
+	{
+        throw new Error("Method not implemented.");
+    }
+
     getPointForSlideValue(slideValue: number): Point2D {
         throw new Error("Method not implemented.");
     }
