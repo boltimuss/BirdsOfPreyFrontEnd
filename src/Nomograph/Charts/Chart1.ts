@@ -103,14 +103,23 @@ export class Chart1 extends Chart
 		{
 			let value:number = this.getKeasHigh(altitudeScale.getPointForSlideValue(altitude).y, speedHigh.getPointForSlideValue(speedHighValue).y);
 			let currentAircraftId: string  = GameState.getInstanceOf().currentAircraft;
-			GameState.getInstanceOf().aircraftStates.get(currentAircraftId).setKeas(value);
+			this.gameState.currentAircraftId = "current";
+			this.gameState.aircraftStates.set(currentAircraftId, { 
+					...this.gameState.aircraftStates.get(currentAircraftId), 
+					"KEAS": value, 
+					"altitude": altitude,
+				    "HiLoSpeed": "low"});
 			return value;
 		}
 		else if (altitudeScale !== undefined && speedLow !== undefined)
 		{
 			let value: number = this.getKeasLow(altitudeScale.getPointForSlideValue(altitude).y, speedLow.getPointForSlideValue(speedLowValue).y);
 			let currentAircraftId: string  = GameState.getInstanceOf().currentAircraft;
-			GameState.getInstanceOf().aircraftStates.get(currentAircraftId).setKeas(value);
+			this.gameState.aircraftStates.set(currentAircraftId, { 
+					...this.gameState.aircraftStates.get(currentAircraftId), 
+					"KEAS": value, 
+					"altitude": altitude,
+				    "HiLoSpeed": "low"});
 			return value;
 		}
 	}
@@ -379,43 +388,68 @@ export class Chart1 extends Chart
 			else if (y > offsetY + (altitudeScale.mmHeight*this.mmPerPixel)) return;
 			altitudeScale.draggableY = y;
 			
-			if (speedLow && speedLow.showDraggable)
+			if (speedLow && speedLow.showDraggable && keasLowScale && keasHighScale)
 			{
-				if (keasLowScale) keasLowScale.value = this.getKeasLow(altitudeScale.draggableY, speedLow.draggableY);
-				if (keasHighScale) keasHighScale.value = 0.0;
+				keasLowScale.value = this.getKeasLow(altitudeScale.draggableY, speedLow.draggableY);
+				keasHighScale.value = 0.0;
 
-				let currentAircraftId: string = GameState.getInstanceOf().currentAircraft;
-				// GameState.getInstanceOf().getAircraftState().get(currentAircraftId).setKeas(getScales().get("keasLowScale").getValue());
+				// let currentAircraftId: string = this.gameState.currentAircraftId;
+				let currentAircraftId: string = "current";
+				this.gameState.currentAircraftId = "current";
+				this.gameState.aircraftStates.set(currentAircraftId, { 
+					...this.gameState.aircraftStates.get(currentAircraftId), 
+					"KEAS": keasLowScale.value, 
+					"altitude": altitudeScale.value,
+				    "HiLoSpeed": "low"});
 			}
-			else if (speedHigh && speedHigh.showDraggable)
+			else if (speedHigh && speedHigh.showDraggable && keasLowScale && keasHighScale)
 			{
-				if (keasLowScale) keasLowScale.value = 0.0;
-				if (keasHighScale) keasHighScale.value = this.getKeasHigh(altitudeScale.draggableY, speedHigh.draggableY);
-				// String currentAircraftId = GameState.getInstanceOf().getCurrentAircraft();
-				// GameState.getInstanceOf().getAircraftState().get(currentAircraftId).setKeas(getScales().get("keasHighScale").getValue());
+				keasLowScale.value = 0.0;
+				keasHighScale.value = this.getKeasHigh(altitudeScale.draggableY, speedHigh.draggableY);
+
+				// let currentAircraftId: string = this.gameState.currentAircraftId;
+				let currentAircraftId: string = "current";
+				this.gameState.currentAircraftId = "current";
+				this.gameState.aircraftStates.set(currentAircraftId, { 
+					...this.gameState.aircraftStates.get(currentAircraftId), 
+					"KEAS": keasHighScale.value, 
+					"altitude": altitudeScale.value,
+				    "HiLoSpeed": "high"});
 			}
 		}
-		else if (speedLow && speedLow.showDraggable && speedLow.isDragging) 
+		else if (altitudeScale && speedLow && speedLow.showDraggable && speedLow.isDragging && keasLowScale && keasHighScale) 
 		{
-			if (keasHighScale) keasHighScale.value = 0.0;
+			keasHighScale.value = 0.0;
 			let offsetY:number = this.mmPerPixel * speedLow.scaleOffset.y;
 			if (y < offsetY + (this.mmPerPixel*speedLow.mmStartOffset)) return;
 			else if (y > offsetY + (speedLow.mmHeight*this.mmPerPixel)) return;
 			speedLow.draggableY = y;
-			if (keasLowScale && altitudeScale && speedLow) keasLowScale.value = this.getKeasLow(altitudeScale.draggableY, speedLow.draggableY);
-			// let currentAircraftId:string = GameState.getInstanceOf().currentAircraft;
-			// GameState.getInstanceOf().getAircraftState().get(currentAircraftId).setKeas(getScales().get("keasLowScale").getValue());
+			keasLowScale.value = this.getKeasLow(altitudeScale.draggableY, speedLow.draggableY);
+			// let currentAircraftId: string = this.gameState.currentAircraftId;
+			let currentAircraftId: string = "current";
+			this.gameState.currentAircraftId = "current";
+			this.gameState.aircraftStates.set(currentAircraftId, { 
+					...this.gameState.aircraftStates.get(currentAircraftId), 
+					"KEAS": keasLowScale.value, 
+					"altitude": altitudeScale.value,
+				    "HiLoSpeed": "low"});
 		}
-		else if (speedHigh && speedHigh.showDraggable && speedHigh.isDragging)
+		else if (altitudeScale && speedHigh && speedHigh.showDraggable && speedHigh.isDragging && keasLowScale && keasHighScale)
 		{
-			if (keasLowScale) keasLowScale.value = 0.0;
+			keasLowScale.value = 0.0;
 			let offsetY: number = this.mmPerPixel * speedHigh.scaleOffset.y;
 			if (y < offsetY + (this.mmPerPixel*speedHigh.mmStartOffset)) return;
 			else if (y > offsetY + (speedHigh.mmHeight*this.mmPerPixel)) return;
 			speedHigh.draggableY = y;
-			if (keasHighScale && altitudeScale && speedHigh)  keasHighScale.value = this.getKeasHigh(altitudeScale.draggableY, speedHigh.draggableY);
-			// String currentAircraftId = GameState.getInstanceOf().getCurrentAircraft();
-			// GameState.getInstanceOf().getAircraftState().get(currentAircraftId).setKeas(getScales().get("keasHighScale").getValue());
+			keasHighScale.value = this.getKeasHigh(altitudeScale.draggableY, speedHigh.draggableY);
+			// let currentAircraftId: string = this.gameState.currentAircraftId;
+			let currentAircraftId: string = "current";
+			this.gameState.currentAircraftId = "current";
+			this.gameState.aircraftStates.set(currentAircraftId, { 
+					...this.gameState.aircraftStates.get(currentAircraftId), 
+					"KEAS": keasHighScale.value, 
+					"altitude": altitudeScale.value,
+				    "HiLoSpeed": "high"});
 		}
 		else
 		{
@@ -479,7 +513,6 @@ export class Chart1 extends Chart
 			return;
 		}
 		
-		this.draw(1.0);
 		this.drawLines();
 	}
 

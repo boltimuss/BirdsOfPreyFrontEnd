@@ -39,14 +39,15 @@ export abstract class AbstractScale implements Scale
     public init(): void
 	{
 		this.mmPerPixel = (window.devicePixelRatio * 96)/25.4;
+		let offsetX: number = this.mmPerPixel * this.scaleOffset.x;
 		let offsetY: number = this.mmPerPixel * this.scaleOffset.y;
 		
-		let currentPixelLocation: number = offsetY + (this.mmStartOffset*this.mmPerPixel);
+		let currentPixelLocation: number = (!this.charactistics.isHorizontal) ? offsetY + (this.mmStartOffset*this.mmPerPixel) : offsetX + (this.mmStartOffset*this.mmPerPixel)
 		this.sections.forEach((section) =>
 		{
 			section.startLocation = currentPixelLocation;
-			section.endLocation = currentPixelLocation + (section.mmHeight * this.mmPerPixel);
-			currentPixelLocation += (section.mmHeight * this.mmPerPixel);
+			section.endLocation = currentPixelLocation + (((section.mmHeight) ? section.mmHeight : section.mmWidth) * this.mmPerPixel);
+			currentPixelLocation +=  (((section.mmHeight) ? section.mmHeight : section.mmWidth) * this.mmPerPixel);
 		});
 	}
 
@@ -107,8 +108,8 @@ export abstract class AbstractScale implements Scale
 			result = result && (y <= dragY + 12 && y >= dragY - 12);
 		}
 		else
-			{
-			result = result && ((x - (this.mmPerPixel * scaleMargin)) <= (dragX + 12) && (x - (this.mmPerPixel * scaleMargin)) >= (dragX - 12));
+		{
+			result = result && ((x - (this.mmPerPixel * scaleMargin)) <= dragX + 12 && (x - (this.mmPerPixel * scaleMargin)) >= dragX - 12);
 			result = result && (y <= dragY + 12 && y >= dragY - 12);
 		}
 		

@@ -1,5 +1,4 @@
 import { Chart } from "../Chart";
-import { GameState } from "../../State/GameState";
 import { Section } from "../Section";
 import { NomographCharacteristics } from "../NomographCharacteristics";
 import { Point2D } from "../SupportObjects/Point2D";
@@ -8,7 +7,6 @@ import { ScaleLabel } from "../Scale/ScaleLabel";
 import { ShadedRegion } from "../ShadedRegion";
 import { AbstractScale } from "../Scale/AbstractScale"; 
 import { LabelSide } from "../LabelSide";
-import { VerticalScale } from "../Scale/VerticalScale";
 import { HorizontalScale } from "../Scale/HorizontalScale";
 import { SlantScale } from "../Scale/SlantScale";
 
@@ -27,7 +25,7 @@ export class Chart3 extends Chart
 		let keasLowScale: AbstractScale | undefined = this.scales.get("keasLowScale");
 		let keasHighScale: AbstractScale | undefined = this.scales.get("keasHighScale");
 		
-		if (wingLoadScale && wingLoadScale.isShowDraggable() && keasLowScale && keasLowScale.isShowDraggable())
+		if (wingLoadScale && keasLowScale && keasLowScale.isShowDraggable())
 		{
 			let x1: number = wingLoadScale.draggableX;
 			let y1: number = wingLoadScale.draggableY;
@@ -44,7 +42,10 @@ export class Chart3 extends Chart
 			let yInt: number = (intersectionPt) ? y2 - intersectionPt.y : 0;
 			
 			let currentAircraftId: string = this.gameState.currentAircraftId;
-			this.gameState.aircraftStates.set(currentAircraftId, {"q-point": new Point2D(xInt, yInt)});
+			this.gameState.aircraftStates.set(currentAircraftId, { 
+					...this.gameState.aircraftStates.get(currentAircraftId), 
+					 "q-point": new Point2D(xInt, yInt),
+					"wingload": wingLoadScale.value});
 			
 			this.ctx.setLineWidth(1);
 			this.ctx.strokeLine(x1, y1, x2, y2);
@@ -55,7 +56,7 @@ export class Chart3 extends Chart
 			this.ctx.fillOval(xInt, yInt, 6, 6);
 			
 		}
-		else if (wingLoadScale && wingLoadScale.isShowDraggable() && keasHighScale && keasHighScale.isShowDraggable())
+		else if (wingLoadScale && keasHighScale && keasHighScale.isShowDraggable())
 		{
 			let x1: number = wingLoadScale.draggableX;
 			let y1: number = wingLoadScale.draggableY;
@@ -72,7 +73,10 @@ export class Chart3 extends Chart
 			let yInt = (intersectionPt) ? y2 - intersectionPt.y: 0;
 			
 			let currentAircraftId: string = this.gameState.currentAircraftId;
-			this.gameState.aircraftStates.set(currentAircraftId, {"q-point": new Point2D(xInt, yInt)});
+			this.gameState.aircraftStates.set(currentAircraftId, { 
+					...this.gameState.aircraftStates.get(currentAircraftId), 
+					 "q-point": new Point2D(xInt, yInt),
+					 "wingload": wingLoadScale.value});
 
 			this.ctx.setLineWidth(1);
 			this.ctx.strokeLine(x1, y1, x2, y2);
@@ -90,31 +94,50 @@ export class Chart3 extends Chart
 		
     }
     
-	public execute(...parameters: any[]): any
+	public execute(): void
 	{
-		// double wingload = (double) parameters[0];
-		// double keasLow = (double) parameters[1];
-		// double keasHigh = (double) parameters[2];
-		// boolean useHigh = (boolean) parameters[3];
-		
-		// double x1 = getScales().get("wingLoadScale").getPointForSlideValue(wingload).getX();
-		// double y1 = getScales().get("wingLoadScale").getDraggableY();
-		// double x2 = (useHigh) ? getScales().get("keasHighScale").getPointForSlideValue(keasHigh).getX() : getScales().get("keasLowScale").getPointForSlideValue(keasLow).getX();
-		// double y2 = (useHigh) ? getScales().get("keasHighScale").getDraggableY() : getScales().get("keasLowScale").getDraggableY();
-		
-		// double slope = -((y2 - y1) / (x2 - x1));
-		// double xOffset = getScales().get("keasLowScale").getScaleOffset().getX() * mmPerPixel;
-		// double b2 = (-slope*(x2-xOffset)); 
-		
-		// Point2D intersectionPt = calculateIntersectionPoint(1.0, 0.0, slope, b2);
-		
-		// double xInt = intersectionPt.getX() + xOffset;
-		// double yInt = y2 - intersectionPt.getY(); 
-	    
-		// String currentAircraftId = GameState.getInstanceOf().getCurrentAircraft();
-		// GameState.getInstanceOf().getAircraftState().get(currentAircraftId).setQPoint(new Point2D(xInt, yInt));
-		
-		// return new Point2D(xInt, yInt);
+		if (this.gameState.aircraftStates.size == 0) return;
+
+		let keasLowScale: AbstractScale | undefined =this.scales.get("keasLowScale");
+		let keasHighScale: AbstractScale | undefined = this.scales.get("keasHighScale");
+		let currentId = this.gameState.currentAircraftId;
+		let speedValue: number = this.gameState.aircraftStates.get(currentId)["KEAS"];
+		let useHigh: boolean = (speedValue > 600);
+		let x: number = 0;
+		let y: number = 0;
+
+		if (!keasLowScale || !keasHighScale) return;
+
+		if (!useHigh)
+		{
+			keasLowScale.showDraggable = true;
+			keasLowScale.isDragging = true;
+			keasHighScale.showDraggable = false;
+			keasHighScale.isDragging = false;
+			let p: Point2D = keasLowScale.getPointForSlideValue(speedValue);
+			x = p.x ;
+			y = p.y;
+			let offsetX: number = (this.mmPerPixel * keasLowScale.scaleOffset.x);
+			if (x < offsetX + (this.mmPerPixel*keasLowScale.mmStartOffset)) return;
+			else if (x > offsetX + (keasLowScale.mmWidth*this.mmPerPixel)) return;
+			keasLowScale.draggableX = x;
+		}
+		else
+		{
+			keasLowScale.showDraggable = false;
+			keasLowScale.isDragging = false;
+			keasHighScale.showDraggable = true;
+			keasHighScale.isDragging = true;
+			let p: Point2D = keasHighScale.getPointForSlideValue(speedValue);
+			x = p.x;
+			y = p.y;
+			let offsetX: number = this.mmPerPixel * keasHighScale.scaleOffset.x;
+			if (x < offsetX + (this.mmPerPixel*keasHighScale.mmStartOffset)) return;
+			else if (x > offsetX + (keasHighScale.mmWidth*this.mmPerPixel)) return;
+			keasHighScale.draggableX = x;
+		}
+
+		this.drawLines();
 	}
 	
 	private initQScale(): SlantScale
@@ -187,7 +210,7 @@ export class Chart3 extends Chart
 			.setSections(sections)
 			.setCharactistics(characteristics)
 			.setScaleOffset(new Point2D(10, 158))
-			.setClickZone(new Rectangle2D(8 * this.mmPerPixel, 166 * this.mmPerPixel, 148 * this.mmPerPixel, 8 * this.mmPerPixel))
+			// .setClickZone(new Rectangle2D(8 * this.mmPerPixel, 166 * this.mmPerPixel, 148 * this.mmPerPixel, 8 * this.mmPerPixel))
 			.setDraggableOffset(new Point2D(0, 135));
 
 		keasHighScale.init();
@@ -231,8 +254,8 @@ export class Chart3 extends Chart
 				.setSections(sections)
 				.setCharactistics(characteristics)
 				.setScaleOffset(new Point2D(10, 158))
-				.setDraggableOffset(new Point2D(0,135))
-				.setClickZone(new Rectangle2D(8 * this.mmPerPixel, 158 * this.mmPerPixel, 148 * this.mmPerPixel, 8 * this.mmPerPixel));
+				.setDraggableOffset(new Point2D(0,135));
+				// .setClickZone(new Rectangle2D(8 * this.mmPerPixel, 158 * this.mmPerPixel, 148 * this.mmPerPixel, 8 * this.mmPerPixel));
 		
 		keasLowScale.setLabel(ScaleLabel.builder()
 				.setDrawValue(false)
@@ -287,7 +310,8 @@ export class Chart3 extends Chart
 				.setStepNumLocation(new Point2D(390, -42)));
 		
 		wingLoadScale.init();
-		
+		wingLoadScale.showDraggable = true;
+
 		return wingLoadScale;
 	}
 	
@@ -299,48 +323,18 @@ export class Chart3 extends Chart
 		
 		this.noClick = true;
 		let wingLoadScale: AbstractScale | undefined = this.scales.get("wingLoadScale");
-		let keasLowScale: AbstractScale | undefined = this.scales.get("keasLowScale");
-		let keasHighScale: AbstractScale | undefined = this.scales.get("keasHighScale");
 
-		if (wingLoadScale && wingLoadScale.isDragging == false && keasLowScale && keasHighScale && !wingLoadScale.isDragging && wingLoadScale.isDraggingDot(x, y, this.scaleMargin, false))
+		if (wingLoadScale && !wingLoadScale.isDragging && wingLoadScale.isDraggingDot(x, y, this.scaleMargin, false))
 		{
 			wingLoadScale.isDragging = true;
-			keasLowScale.isDragging = false;
-			keasHighScale.isDragging = false;
-		}
-		else if (wingLoadScale && keasLowScale && keasLowScale.isDragging == false && keasHighScale && keasLowScale.isDraggingDot(x, y, this.scaleMargin, false) && (!keasLowScale.isDragging))
-		{
-			wingLoadScale.isDragging = false;
-			keasLowScale.isDragging = true;
-			keasHighScale.isDragging = false;
-		}
-		else if (wingLoadScale && keasLowScale && keasHighScale && keasHighScale.isDragging == false && keasHighScale.isDraggingDot(x, y, this.scaleMargin, false) && (!keasHighScale.isDragging))
-		{
-			wingLoadScale.isDragging = false;
-			keasLowScale.isDragging = false;
-			keasHighScale.isDragging = true;
 		}
 		
-		if (wingLoadScale && wingLoadScale.isShowDraggable() && wingLoadScale.isDragging) 
+		if (wingLoadScale && wingLoadScale.isDragging) 
 		{
 			let offsetX: number = this.mmPerPixel * wingLoadScale.scaleOffset.x + 44;
 			if (x < offsetX + (this.mmPerPixel*wingLoadScale.mmStartOffset)) return;
 			else if (x > offsetX + (wingLoadScale.mmWidth*this.mmPerPixel)) return;
 			wingLoadScale.draggableX = x - 44;
-		}
-		else if (keasLowScale && keasLowScale.isShowDraggable() && keasLowScale.isDragging) 
-		{
-			let offsetX: number = this.mmPerPixel * keasLowScale.scaleOffset.x + 44;
-			if (x < offsetX + (this.mmPerPixel*keasLowScale.mmStartOffset)) return;
-			else if (x > offsetX + (keasLowScale.mmWidth*this.mmPerPixel)) return;
-			keasLowScale.draggableX = x - 44;
-		}
-		else if (keasHighScale && keasHighScale.isShowDraggable() && keasHighScale.isDragging) 
-		{
-			let offsetX: number = this.mmPerPixel * keasHighScale.scaleOffset.x + 44;
-			if (x < offsetX + (this.mmPerPixel*keasHighScale.mmStartOffset)) return;
-			else if (x > offsetX + (keasHighScale.mmWidth*this.mmPerPixel)) return;
-			keasHighScale.draggableX = x - 44;
 		}
 		else
 		{
@@ -367,46 +361,6 @@ export class Chart3 extends Chart
 		this.dragOffset = 0;
 		this.mouseStart = new Point2D(x, y);
 		this.isDragging = true;
-	}
-
-	public handleMouseClick(x: number, y: number)
-	{
-		if (this.noClick)
-		{
-			this.noClick = false;
-			return;
-		}
-		this.isDragging = false;
-		let wingLoadScale: AbstractScale | undefined = this.scales.get("wingLoadScale");
-		let keasLowScale: AbstractScale | undefined = this.scales.get("keasLowScale");
-		let keasHighScale: AbstractScale | undefined = this.scales.get("keasHighScale");
-
-		if (wingLoadScale && wingLoadScale.containsClick(x, y))
-		{
-			wingLoadScale.showDraggable = !wingLoadScale.isShowDraggable();
-		}
-		else if (keasHighScale && keasLowScale && keasLowScale.containsClick(x, y))
-		{
-			keasLowScale.showDraggable = !keasLowScale.isShowDraggable();
-			if (keasLowScale.isShowDraggable())
-			{
-				keasHighScale.showDraggable = false;
-			}
-		}
-		else if (keasLowScale && keasHighScale && keasHighScale.containsClick(x, y))
-		{
-			keasHighScale.showDraggable = !keasHighScale.isShowDraggable();
-			if (keasHighScale.isShowDraggable())
-			{
-				keasLowScale.showDraggable = false;
-			}
-		}
-		else 
-		{
-			return;
-		}
-		
-		this.drawLines();
 	}
 
 	protected init(): void 

@@ -1,13 +1,13 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useContext } from 'react';
 import { Chart1 } from '../Nomograph/Charts/Chart1.ts';
 import { Rectangle2D } from '../Nomograph/SupportObjects/Rectangle2D.ts';
-import { useContext } from 'react';
 import { GameStateCtx } from '../GameState.jsx'
 
 function Chart_1() {
 
   const canvasRef = useRef(null);
   const chart1 = useRef(null);
+  const { gameState, setGameState } = useContext(GameStateCtx);
 
   useEffect(() => {
     draw();
@@ -16,8 +16,6 @@ function Chart_1() {
     canvasRef.current.addEventListener('mouseup', handleMouseUp);
     canvasRef.current.addEventListener('click', handleMouseClick);
   }, []);  
-
-  const { gameState, setGameState } = useContext(GameStateCtx);
 
   const handleMouseDown = (event) => {
     
@@ -28,8 +26,7 @@ function Chart_1() {
     let x = (event.clientX - rect.left) * scaleX;
     let y = (event.clientY - rect.top) * scaleY;
     chart1.current.handleMouseDown(x, y);
-    setGameState(chart1.gameState)
-  };
+  }; 
 
   const handleMouseClick = (event) => {
     
@@ -51,6 +48,22 @@ function Chart_1() {
     let x = (event.clientX - rect.left) * scaleX;
     let y = (event.clientY - rect.top) * scaleY;
     chart1.current.handleMouseMove(x, y);
+
+    setGameState(prev => {
+
+      if (prev && chart1.current.gameState) {
+        const newAircraftStates = new Map(prev.aircraftStates);
+        newAircraftStates.set(chart1.current.gameState.currentAircraftId, chart1.current.gameState.aircraftStates.get(chart1.current.gameState.currentAircraftId));
+        return { ...prev, currentAircraftId: chart1.current.gameState.currentAircraftId, aircraftStates: newAircraftStates };
+      }
+      else if (chart1.current.gameState)
+      {
+        const newAircraftStates = new Map();
+        newAircraftStates.set(chart1.current.gameState.currentAircraftId, chart1.current.gameState.aircraftStates.get(chart1.current.gameState.currentAircraftId));
+        return {currentAircraftId: chart1.current.gameState.currentAircraftId, aircraftStates: newAircraftStates};
+      }
+    });
+
   };
 
   const handleMouseUp = (event) => {
@@ -62,6 +75,7 @@ function Chart_1() {
     let x = (event.clientX - rect.left) * scaleX;
     let y = (event.clientY - rect.top) * scaleY;
     chart1.current.handleMouseUp(x, y);
+    
   };
 
   const draw = () => {

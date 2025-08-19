@@ -15,7 +15,7 @@ export abstract class Chart
 	scaleMargin: number = 12;
 	gameState:  { aircraftStates: Map<string, any>, currentAircraftId: string};
 	
-	constructor(dimensions: Rectangle2D, canvas: any, gameState: { aircraftStates: Map<string, any>, currentAircraftId: string})
+	constructor(dimensions: Rectangle2D, canvas: any)
 	{
 		this.width = dimensions.getWidth();
 		this.height = dimensions.getHeight();
@@ -25,7 +25,7 @@ export abstract class Chart
 		this.ctx.setTransform(1, 0, 0, 1, 0, 0);
 		this.ctx.translate(this.scaleMargin * this.mmPerPixel, 0);
 		this.init(this.ctx);
-		this.gameState = gameState;
+		this.gameState = { "aircraftStates": new Map<string, any>(), currentAircraftId: ""};
 		this.draw(1.0);
 
 	}

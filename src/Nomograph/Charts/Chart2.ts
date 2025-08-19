@@ -94,31 +94,58 @@ export class Chart2 extends Chart
 		return keasHighScale.getDataPointForSlideValue(keashighinterceptY);
 	}
 	
-	public execute(...parameters: any[]): any
+	public execute(): void
 	{
-		let altitude: number = parameters[0];
-		let speedHighValue: number = parameters[1];
-		let speedLowValue: number = parameters[2];
-		let useHigh: boolean = parameters[3];
-		
-		let altitudeScale: AbstractScale | undefined =this.scales.get("altitudeScale");
-		let speedHigh: AbstractScale | undefined = this.scales.get("speedLow");
-		let speedLow: AbstractScale | undefined = this.scales.get("keasLowScale");
+		if (this.gameState.aircraftStates.size == 0) return;
 
-		if (useHigh && altitudeScale !== undefined && speedHigh !== undefined && speedLow !== undefined)
+		let altitudeScale: AbstractScale | undefined =this.scales.get("altitudeScale");
+		let keasHighScale: AbstractScale | undefined = this.scales.get("keasHighScale");
+		let keasLowScale: AbstractScale | undefined = this.scales.get("keasLowScale");
+		let machLow: AbstractScale | undefined = this.scales.get("machLow");
+		let currentId = this.gameState.currentAircraftId;
+		let altitude: number = this.gameState.aircraftStates.get(currentId)["altitude"];
+		let speedHighValue: number = this.gameState.aircraftStates.get(currentId)["KEAS"];
+		let speedLowValue: number = this.gameState.aircraftStates.get(currentId)["KEAS"];
+		let useHigh: boolean = (this.gameState.aircraftStates.get(currentId)["HiLoSpeed"] == "high");
+
+		if (useHigh && altitudeScale  && keasHighScale && keasLowScale )
 		{
-			let value:number = this.getKeasHigh(altitudeScale.getPointForSlideValue(altitude).y, speedHigh.getPointForSlideValue(speedHighValue).y);
-			let currentAircraftId: string  = GameState.getInstanceOf().currentAircraft;
-			GameState.getInstanceOf().aircraftState.get(currentAircraftId).setKeas(value);
-			return value;
+			keasLowScale.showDraggable = false;
+			keasHighScale.draggableY = keasHighScale.getPointForSlideValue(speedHighValue).y;
+			keasHighScale.showDraggable = true;
+			altitudeScale.draggableY = altitudeScale.getPointForSlideValue(altitude).y
+			altitudeScale.showDraggable = true;
 		}
-		else if (altitudeScale !== undefined && speedLow !== undefined)
+		else if (altitudeScale && keasLowScale && keasHighScale)
 		{
-			let value: number = this.getKeasLow(altitudeScale.getPointForSlideValue(altitude).y, speedLow.getPointForSlideValue(speedLowValue).y);
-			let currentAircraftId: string  = GameState.getInstanceOf().currentAircraft;
-			GameState.getInstanceOf().aircraftState.get(currentAircraftId).setKeas(value);
-			return value;
+			keasHighScale.showDraggable = false;
+			keasLowScale.draggableY = keasLowScale.getPointForSlideValue(speedLowValue).y;
+			keasLowScale.showDraggable = true;
+			altitudeScale.draggableY = altitudeScale.getPointForSlideValue(altitude).y
+			altitudeScale.showDraggable = true;
 		}
+
+		if (altitudeScale && keasLowScale && keasLowScale.isShowDraggable() && machLow)
+		{
+			machLow.value = this.getLowMach(altitudeScale.draggableY, keasLowScale.draggableY);
+			let currentAircraftId: string = this.gameState.currentAircraftId;
+			if (machLow.value < .90) this.gameState.aircraftStates.set(currentAircraftId, { ...this.gameState.aircraftStates.get(currentAircraftId), "mach": "slow"});
+			else if (machLow.value >= .90 && machLow.value < 1.0) this.gameState.aircraftStates.set(currentAircraftId, { ...this.gameState.aircraftStates.get(currentAircraftId), "mach": "LTD"});
+			else if (machLow.value >= 1.0 && machLow.value <= 1.1) this.gameState.aircraftStates.set(currentAircraftId, { ...this.gameState.aircraftStates.get(currentAircraftId), "mach": "HTD"});
+			else this.gameState.aircraftStates.set(currentAircraftId, { ...this.gameState.aircraftStates.get(currentAircraftId), "mach": machLow.value.toString()});
+			
+		}
+		else if (altitudeScale && keasHighScale && keasHighScale.isShowDraggable() && machLow)
+		{
+			machLow.value = this.getHighMach(altitudeScale.draggableY, keasHighScale.draggableY);
+			let currentAircraftId: string = this.gameState.currentAircraftId;
+			if (machLow.value < .90) this.gameState.aircraftStates.set(currentAircraftId, { ...this.gameState.aircraftStates.get(currentAircraftId), "mach": "slow"});
+			else if (machLow.value >= .90 && machLow.value < 1.0) this.gameState.aircraftStates.set(currentAircraftId, { ...this.gameState.aircraftStates.get(currentAircraftId), "mach": "LTD"});
+			else if (machLow.value >= 1.0 && machLow.value <= 1.1) this.gameState.aircraftStates.set(currentAircraftId, { ...this.gameState.aircraftStates.get(currentAircraftId), "mach": "HTD"});
+			else this.gameState.aircraftStates.set(currentAircraftId, { ...this.gameState.aircraftStates.get(currentAircraftId), "mach": machLow.value.toString()});
+		}
+
+		this.drawLines();
 	}
 	
 	private initAltitudeScale(): VerticalScale
@@ -371,14 +398,21 @@ export class Chart2 extends Chart
 			if (keasLowScale.isShowDraggable() && machLow)
 			{
 				machLow.value = this.getLowMach(altitudeScale.draggableY, keasLowScale.draggableY);
-				// String currentAircraftId = GameState.getInstanceOf().getCurrentAircraft();
-				// GameState.getInstanceOf().getAircraftState().get(currentAircraftId).setMach(getScales().get("machLow").getValue());
+				let currentAircraftId: string = this.gameState.currentAircraftId;
+				if (machLow.value < .90) this.gameState.aircraftStates.set(currentAircraftId, {"mach": "slow"});
+				else if (machLow.value >= .90 && machLow.value < 1.0) this.gameState.aircraftStates.set(currentAircraftId, {"mach": "LTD"});
+				else if (machLow.value >= 1.0 && machLow.value <= 1.1) this.gameState.aircraftStates.set(currentAircraftId, {"mach": "HTD"});
+				else this.gameState.aircraftStates.set(currentAircraftId, {"mach": "NONE"});
+				
 			}
 			else if (keasHighScale.isShowDraggable() && machLow)
 			{
 				machLow.value = this.getHighMach(altitudeScale.draggableY, keasHighScale.draggableY);
-				// String currentAircraftId = GameState.getInstanceOf().getCurrentAircraft();
-				// GameState.getInstanceOf().getAircraftState().get(currentAircraftId).setMach(getScales().get("machLow").getValue());
+				let currentAircraftId: string = this.gameState.currentAircraftId;
+				if (machLow.value < .90) this.gameState.aircraftStates.set(currentAircraftId, {"mach": "slow"});
+				else if (machLow.value >= .90 && machLow.value < 1.0) this.gameState.aircraftStates.set(currentAircraftId, {"mach": "LTD"});
+				else if (machLow.value >= 1.0 && machLow.value <= 1.1) this.gameState.aircraftStates.set(currentAircraftId, {"mach": "HTD"});
+				else this.gameState.aircraftStates.set(currentAircraftId, {"mach": "NONE"});
 			}
 		}
 		else if (machLow && altitudeScale && keasHighScale && keasLowScale && keasLowScale.isShowDraggable() && keasLowScale.isDragging) 
@@ -398,8 +432,11 @@ export class Chart2 extends Chart
 				keasLowScale.draggableY = this.calcLowKeasYForMachY((clampResult == -1), true);
 			}
 			machLow.value = this.getLowMach(altitudeScale.draggableY, keasLowScale.draggableY);
-			// String currentAircraftId = GameState.getInstanceOf().getCurrentAircraft();
-			// GameState.getInstanceOf().getAircraftState().get(currentAircraftId).setMach(getScales().get("machLow").getValue());
+			let currentAircraftId: string = this.gameState.currentAircraftId;
+			if (machLow.value < .90) this.gameState.aircraftStates.set(currentAircraftId, {"mach": "slow"});
+			else if (machLow.value >= .90 && machLow.value < 1.0) this.gameState.aircraftStates.set(currentAircraftId, {"mach": "LTD"});
+			else if (machLow.value >= 1.0 && machLow.value <= 1.1) this.gameState.aircraftStates.set(currentAircraftId, {"mach": "HTD"});
+			else this.gameState.aircraftStates.set(currentAircraftId, {"mach": "NONE"});
 		}
 		else if (machLow && keasLowScale && altitudeScale && keasHighScale && keasHighScale.isShowDraggable() && keasHighScale.isDragging)
 		{
@@ -418,8 +455,11 @@ export class Chart2 extends Chart
 				keasHighScale.draggableY = this.calcLowKeasYForMachY((clampResult == -1), false);
 			}
 			machLow.value = this.getHighMach(altitudeScale.draggableY, keasHighScale.draggableY);
-			// String currentAircraftId = GameState.getInstanceOf().getCurrentAircraft();
-			// GameState.getInstanceOf().getAircraftState().get(currentAircraftId).setMach(getScales().get("machLow").getValue());
+			let currentAircraftId: string = this.gameState.currentAircraftId;
+			if (machLow.value < .90) this.gameState.aircraftStates.set(currentAircraftId, {"mach": "slow"});
+			else if (machLow.value >= .90 && machLow.value < 1.0) this.gameState.aircraftStates.set(currentAircraftId, {"mach": "LTD"});
+			else if (machLow.value >= 1.0 && machLow.value <= 1.1) this.gameState.aircraftStates.set(currentAircraftId, {"mach": "HTD"});
+			else this.gameState.aircraftStates.set(currentAircraftId, {"mach": "NONE"});
 		}
 		else
 		{

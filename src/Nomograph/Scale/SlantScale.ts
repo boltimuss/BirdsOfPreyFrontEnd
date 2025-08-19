@@ -255,28 +255,28 @@ export class SlantScale extends AbstractScale
 		if (this.draggableX == -9999999) this.draggableX = offsetX + (this.mmPerPixel*this.mmStartOffset) + (this.mmPerPixel * this.draggableOffset.x);
 		if (this.draggableY == -9999999) this.draggableY = offsetY;
 		
-		if (this.showDraggable)
-		{
-			gc.setFill("red");
-			gc.fillOval(this.draggableX - 3, this.draggableY - 3, 6, 6);
+		// if (this.showDraggable)
+		// {
+			// gc.setFill("red");
+			// gc.fillOval(this.draggableX - 3, this.draggableY - 3, 6, 6);
 			
 			// draw the value
-			let xOffset: number = (this.charactistics.labelSide == (LabelSide.RIGHT)) ? 0 : -40;
+			// let xOffset: number = (this.charactistics.labelSide == (LabelSide.RIGHT)) ? 0 : -40;
 			
-			gc.setFill("black");
-			gc.setLineWidth(2);
-			gc.fillRect(this.draggableX + 5 + xOffset, this.draggableY - 6, 30, 12);
-			gc.setFill("white");
-			gc.fillRect(this.draggableX + 6 + xOffset, this.draggableY - 5, 28, 10);
+			// gc.setFill("black");
+			// gc.setLineWidth(2);
+			// gc.fillRect(this.draggableX + 5 + xOffset, this.draggableY - 6, 30, 12);
+			// gc.setFill("white");
+			// gc.fillRect(this.draggableX + 6 + xOffset, this.draggableY - 5, 28, 10);
 			
-			gc.setFill("black");
-			gc.font("10px Sans");
+			// gc.setFill("black");
+			// gc.font("10px Sans");
 			
-			let value: number = this.getDataPointForSlideValue(this.draggableX);
-			if (value > -999)
-			{
-				gc.fillText((Math.ceil(this.value * 100) / 100).toFixed(2), this.draggableX + 8 + xOffset, this.draggableY + 3);
-			}
-		}
+			// this.value = this.getDataPointForSlideValue(this.draggableX);
+			// if (this.value > -999)
+			// {
+			// 	gc.fillText((Math.ceil(this.value * 100) / 100).toFixed(2), this.draggableX + 8 + xOffset, this.draggableY + 3);
+			// }
+		// }
 	}
 }

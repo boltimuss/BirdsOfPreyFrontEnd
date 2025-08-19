@@ -80,8 +80,9 @@ export class VerticalScale extends AbstractScale
 		
 	public getPointForSlideValue(dataPoint: number): Point2D
 	{
-		this.sections.forEach((section) =>
+		for (let i=0; i < this.sections.length; i++)
 		{
+			let section: Section = this.sections[i];
 			if ((this.charactistics.isDescending && dataPoint <= section.startValue && dataPoint >= section.endValue) ||
 				(!this.charactistics.isDescending && dataPoint >= section.startValue && dataPoint <= section.endValue))
 			{
@@ -91,7 +92,7 @@ export class VerticalScale extends AbstractScale
 			    let p: Point2D = new Point2D((this.scaleOffset.x * this.mmPerPixel), section.startLocation+ (deltaY * percentage));
 				return p;
 			}
-		});
+		}
 		
 		return new Point2D(0,0);
 	}
@@ -224,10 +225,10 @@ export class VerticalScale extends AbstractScale
 			
 			gc.setFill("black");
 			gc.font("normal 13px Sans");
-			let value: number = this.getDataPointForSlideValue(this.draggableY);
-			if (value > -999)
+			this.value = this.getDataPointForSlideValue(this.draggableY);
+			if (this.value > -999)
 			{
-				gc.fillText((Math.ceil(value * 100) / 100).toFixed(2), this.draggableX - 12 + xOffset, this.draggableY + 3);
+				gc.fillText((Math.ceil(this.value * 100) / 100).toFixed(2), this.draggableX - 12 + xOffset, this.draggableY + 3);
 			}
 			
 			else 

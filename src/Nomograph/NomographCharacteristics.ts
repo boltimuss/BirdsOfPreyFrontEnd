@@ -14,10 +14,17 @@ export class NomographCharacteristics
 	color: string;
 	rotation: number;
 	rotationOffset: Point2D
+	isHorizontal: boolean = false;
 
 	public static builder(): NomographCharacteristics
 	{
 		return new NomographCharacteristics();
+	}
+
+	public setIsHorizontal(isHorizontal: boolean): NomographCharacteristics
+	{
+		this.isHorizontal = isHorizontal;
+		return this;
 	}
 
 	public setRotationOffset(rotationOffset: Point2D): NomographCharacteristics

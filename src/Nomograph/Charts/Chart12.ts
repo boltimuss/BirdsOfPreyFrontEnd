@@ -25,7 +25,7 @@ export class Chart12 extends Chart
 		let engineOutputScale: AbstractScale | undefined = this.scales.get("engineOutputScale");
 		let engineDeltaSpeedScale: AbstractScale | undefined = this.scales.get("engineDeltaSpeedScale");
 		
-		if (engineDeltaSpeedScale && wingLoadScale && wingLoadScale.isShowDraggable() && engineOutputScale && engineOutputScale.isShowDraggable())
+		if (engineDeltaSpeedScale && wingLoadScale  && engineOutputScale)
 		{
 			let x1: number = wingLoadScale.draggableX;
 			let y1: number = wingLoadScale.draggableY;
@@ -41,14 +41,18 @@ export class Chart12 extends Chart
 			let xInt: number = (intersectionPt) ? intersectionPt.x + xOffset : 0;
 			let yInt: number = (intersectionPt) ? y2 - intersectionPt.y : 0;
 			engineDeltaSpeedScale.value = engineDeltaSpeedScale.getSlideValueForPoint(yInt);
+			if (engineDeltaSpeedScale.value == -999) engineDeltaSpeedScale.value = 200;
 
 			let currentAircraftId: string = this.gameState.currentAircraftId;
-			this.gameState.aircraftStates.set(currentAircraftId, {"q-point": new Point2D(xInt, yInt)});
-			
+			this.gameState.aircraftStates.set(currentAircraftId, { 
+					...this.gameState.aircraftStates.get(currentAircraftId), 
+					 "engineDeltaSpeed": engineDeltaSpeedScale.value});
+
 			this.ctx.setLineWidth(1);
 			this.ctx.strokeLine(x1, y1, x2, y2);
 			wingLoadScale.drawDraggableNotch(this.ctx);
-			
+			engineOutputScale.drawDraggableNotch(this.ctx);
+
 			this.ctx.setFill("red");
 			this.ctx.fillOval(xInt, yInt, 6, 6);
 			
@@ -58,37 +62,22 @@ export class Chart12 extends Chart
 			return;
 		}
 
-		if (engineDeltaSpeedScale)
-		{
-
-		}
     }
     
 	public execute(...parameters: any[]): any
 	{
-		// double wingload = (double) parameters[0];
-		// double keasLow = (double) parameters[1];
-		// double keasHigh = (double) parameters[2];
-		// boolean useHigh = (boolean) parameters[3];
-		
-		// double x1 = getScales().get("wingLoadScale").getPointForSlideValue(wingload).getX();
-		// double y1 = getScales().get("wingLoadScale").getDraggableY();
-		// double x2 = (useHigh) ? getScales().get("keasHighScale").getPointForSlideValue(keasHigh).getX() : getScales().get("keasLowScale").getPointForSlideValue(keasLow).getX();
-		// double y2 = (useHigh) ? getScales().get("keasHighScale").getDraggableY() : getScales().get("keasLowScale").getDraggableY();
-		
-		// double slope = -((y2 - y1) / (x2 - x1));
-		// double xOffset = getScales().get("keasLowScale").getScaleOffset().getX() * mmPerPixel;
-		// double b2 = (-slope*(x2-xOffset)); 
-		
-		// Point2D intersectionPt = calculateIntersectionPoint(1.0, 0.0, slope, b2);
-		
-		// double xInt = intersectionPt.getX() + xOffset;
-		// double yInt = y2 - intersectionPt.getY(); 
-	    
-		// String currentAircraftId = GameState.getInstanceOf().getCurrentAircraft();
-		// GameState.getInstanceOf().getAircraftState().get(currentAircraftId).setQPoint(new Point2D(xInt, yInt));
-		
-		// return new Point2D(xInt, yInt);
+		let wingLoadScale: AbstractScale | undefined = this.scales.get("wingLoadScale");
+		let currentAircraftId: string = this.gameState.currentAircraftId;
+		if (wingLoadScale && this.gameState.aircraftStates.get(currentAircraftId) && this.gameState.aircraftStates.get(currentAircraftId)["wingload"]) 
+		{
+			wingLoadScale.draggableX = wingLoadScale.getPointForSlideValue( this.gameState.aircraftStates.get(currentAircraftId)["wingload"]).x;
+			let x: number = wingLoadScale.draggableX;
+			let offsetX: number = this.mmPerPixel * wingLoadScale.scaleOffset.x;
+			if (x < offsetX + (this.mmPerPixel*wingLoadScale.mmStartOffset)) return;
+			else if (x > offsetX + wingLoadScale.mmHeight*this.mmPerPixel) return;
+		}
+
+		this.drawLines();
 	}
 	
 	private initWingLoadScale(): HorizontalScale
@@ -129,7 +118,8 @@ export class Chart12 extends Chart
 				.setStepNumLocation(new Point2D(390, -42)));
 		
 		wingLoadScale.init();
-		
+		wingLoadScale.showDraggable = true;
+
 		return wingLoadScale;
 	}
 
@@ -167,7 +157,8 @@ export class Chart12 extends Chart
 				.setStepNumLocation(new Point2D(330, -17)));
 		
 		engineOutputScale.init();
-	
+		engineOutputScale.showDraggable = true;
+
 		return engineOutputScale;
 	}
 
@@ -222,7 +213,8 @@ export class Chart12 extends Chart
 				.setStepNumLocation(new Point2D(-174, 235)));
 		
 		engineDeltaSpeedScale.init();
-		
+		engineDeltaSpeedScale.showDraggable = true;
+
 		return engineDeltaSpeedScale;
 	}
 
@@ -236,25 +228,13 @@ export class Chart12 extends Chart
 		let wingLoadScale: AbstractScale | undefined = this.scales.get("wingLoadScale");
 		let engineDeltaSpeedScale: AbstractScale | undefined = this.scales.get("engineOutputScale");
 
-		if (wingLoadScale && wingLoadScale.isDragging == false && engineDeltaSpeedScale && wingLoadScale.isDraggingDot(x, y, this.scaleMargin, false))
-		{
-			wingLoadScale.isDragging = true;
-			engineDeltaSpeedScale.isDragging = false;
-		}
-		else if (engineDeltaSpeedScale && engineDeltaSpeedScale.isDragging == false && wingLoadScale && engineDeltaSpeedScale.isDraggingDot(x, y, this.scaleMargin, false))
+		if (engineDeltaSpeedScale && engineDeltaSpeedScale.isDragging == false && wingLoadScale && engineDeltaSpeedScale.isDraggingDot(x, y, this.scaleMargin, false))
 		{
 			wingLoadScale.isDragging = false;
 			engineDeltaSpeedScale.isDragging = true;
 		}
 		
-		if (wingLoadScale && wingLoadScale.isShowDraggable() && wingLoadScale.isDragging) 
-		{
-			let offsetX: number = this.mmPerPixel * wingLoadScale.scaleOffset.x + 44;
-			if (x < offsetX + (this.mmPerPixel*wingLoadScale.mmStartOffset)) return;
-			else if (x > offsetX + (wingLoadScale.mmWidth*this.mmPerPixel)) return;
-			wingLoadScale.draggableX = x - 44;
-		}
-		else if (engineDeltaSpeedScale && engineDeltaSpeedScale.isShowDraggable() && engineDeltaSpeedScale.isDragging) 
+		if (engineDeltaSpeedScale && engineDeltaSpeedScale.isShowDraggable() && engineDeltaSpeedScale.isDragging) 
 		{
 			let offsetX: number = this.mmPerPixel * engineDeltaSpeedScale.scaleOffset.x + 44;
 			if (x < offsetX + (this.mmPerPixel*engineDeltaSpeedScale.mmStartOffset)) return;

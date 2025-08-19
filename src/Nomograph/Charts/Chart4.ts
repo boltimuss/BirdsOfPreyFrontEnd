@@ -23,25 +23,16 @@ export class Chart4 extends Chart
 		this.draw(1.0);
 		let maxLiftScale: AbstractScale | undefined = this.scales.get("maxLiftScale");
 		let aeroLoadLimit: AbstractScale | undefined = this.scales.get("aeroLoadLimit");
-		if (maxLiftScale && aeroLoadLimit && maxLiftScale.isShowDraggable())
+		let currentAircraftId: string = this.gameState.currentAircraftId;
+		if (maxLiftScale && aeroLoadLimit)
 		{
-
 			let x1: number = maxLiftScale.draggableX;
 			let y1: number = maxLiftScale.draggableY;
-			let currentAircraftId: string = this.gameState.currentAircraftId;
 			let x2: number = this.gameState.aircraftStates.get(currentAircraftId)["q-point"].x;
 			let y2: number = this.gameState.aircraftStates.get(currentAircraftId)["q-point"].y;
 			let slope: number = (y2 - y1) / (x2 - x1);
 			let x3: number = aeroLoadLimit.scaleOffset.x * this.mmPerPixel;
 			let y3: number = (slope * (x3 - x2)) + y2;
-
-			// let clampResult: number = this.clampToscale(maxLiftScale.draggableX, maxLiftScale.draggableY);
-			// if (clampResult < 0)
-			// {
-			// 	maxLiftScale.draggableY = this.calcMaxLiftYForAeroLoadLimitY();
-			// 	y1 = this.calcMaxLiftYForAeroLoadLimitY();
-			// 	y3 = aeroLoadLimit.scaleOffset.y * this.mmPerPixel;
-			// }
 
 			this.ctx.setLineWidth(1);
 			this.ctx.strokeLine(x1, y1, x2, y2);
@@ -51,6 +42,10 @@ export class Chart4 extends Chart
 			
 			let loadLimit: number = aeroLoadLimit.getDataPointForSlideValue(y3);
 			let xOffset: number = aeroLoadLimit.charactistics.labelSide == (LabelSide.LEFT) ? 0 : -40;
+
+			this.gameState.aircraftStates.set(currentAircraftId, { 
+					...this.gameState.aircraftStates.get(currentAircraftId), 
+					 "aeroLoadLimit": loadLimit});
 
 			this.ctx.setFill("black");
 			this.ctx.setLineWidth(2);
@@ -73,29 +68,27 @@ export class Chart4 extends Chart
     
 	public execute(...parameters: any[]): any
 	{
-		// double wingload = (double) parameters[0];
-		// double keasLow = (double) parameters[1];
-		// double keasHigh = (double) parameters[2];
-		// boolean useHigh = (boolean) parameters[3];
-		
-		// double x1 = getScales().get("wingLoadScale").getPointForSlideValue(wingload).getX();
-		// double y1 = getScales().get("wingLoadScale").getDraggableY();
-		// double x2 = (useHigh) ? getScales().get("keasHighScale").getPointForSlideValue(keasHigh).getX() : getScales().get("keasLowScale").getPointForSlideValue(keasLow).getX();
-		// double y2 = (useHigh) ? getScales().get("keasHighScale").getDraggableY() : getScales().get("keasLowScale").getDraggableY();
-		
-		// double slope = -((y2 - y1) / (x2 - x1));
-		// double xOffset = getScales().get("keasLowScale").getScaleOffset().getX() * mmPerPixel;
-		// double b2 = (-slope*(x2-xOffset)); 
-		
-		// Point2D intersectionPt = calculateIntersectionPoint(1.0, 0.0, slope, b2);
-		
-		// double xInt = intersectionPt.getX() + xOffset;
-		// double yInt = y2 - intersectionPt.getY(); 
-	    
-		// String currentAircraftId = GameState.getInstanceOf().getCurrentAircraft();
-		// GameState.getInstanceOf().getAircraftState().get(currentAircraftId).setQPoint(new Point2D(xInt, yInt));
-		
-		// return new Point2D(xInt, yInt);
+		let maxLiftScale: AbstractScale | undefined = this.scales.get("maxLiftScale");
+		let currentAircraftId: string = this.gameState.currentAircraftId;
+		if (maxLiftScale && this.gameState.aircraftStates.get(currentAircraftId) && this.gameState.aircraftStates.get(currentAircraftId)["q-point"]) 
+		{
+			let y: number = maxLiftScale.draggableY;
+			let offsetY: number = this.mmPerPixel * maxLiftScale.scaleOffset.y;
+			if (y < offsetY + (this.mmPerPixel*maxLiftScale.mmStartOffset)) y = maxLiftScale.getPointForSlideValue(0).y;
+			else if (y > offsetY + maxLiftScale.mmHeight*this.mmPerPixel) y = maxLiftScale.getPointForSlideValue(0).y;
+			let clampResult: number = this.clampToscale(maxLiftScale.draggableX, maxLiftScale.draggableY);
+			if (clampResult >= 0 || y <=  this.calcMaxLiftYForAeroLoadLimitY())
+			{
+				maxLiftScale.draggableY = y;
+			}
+			
+			this.drawLines();
+		}
+		else
+		{
+			return;
+		}
+			
 	}
 	
 	private initQScale(): SlantScale
@@ -208,7 +201,8 @@ export class Chart4 extends Chart
 				.setStepNumLocation(new Point2D(34, 510)));
 		
 		maxLiftScale.init();
-		
+		maxLiftScale.showDraggable = true;
+		maxLiftScale.isDragging= false;
 		return maxLiftScale;
 	}
 	
@@ -226,7 +220,7 @@ export class Chart4 extends Chart
 			maxLiftScale.isDragging = true;
 		}
 		
-		if (maxLiftScale && maxLiftScale.isShowDraggable() && maxLiftScale.isDragging) 
+		if (maxLiftScale) 
 		{
 			let offsetY: number = this.mmPerPixel * maxLiftScale.scaleOffset.y;
 			if (y < offsetY + (this.mmPerPixel*maxLiftScale.mmStartOffset)) return;
@@ -236,6 +230,7 @@ export class Chart4 extends Chart
 			{
 				maxLiftScale.draggableY = y;
 			}
+			
 		}
 		else
 		{
@@ -267,10 +262,9 @@ export class Chart4 extends Chart
 	{
 
 		let aeroLoadLimit: AbstractScale | undefined = this.scales.get("aeroLoadLimit"); 
-
-		if (aeroLoadLimit) 
+		let currentAircraftId: string = this.gameState.currentAircraftId;
+		if (aeroLoadLimit && "q-point" in this.gameState.aircraftStates.get(currentAircraftId)) 
 		{
-			let currentAircraftId: string = this.gameState.currentAircraftId;
 			let x3: number = maxLiftDragX;
 			let y3: number = maxLiftDragY;
 			let x2: number = this.gameState.aircraftStates.get(currentAircraftId)["q-point"].x;
@@ -307,28 +301,6 @@ export class Chart4 extends Chart
 		this.dragOffset = 0;
 		this.mouseStart = new Point2D(x, y);
 		this.isDragging = true;
-	}
-
-	public handleMouseClick(x: number, y: number)
-	{
-		if (this.noClick)
-		{
-			this.noClick = false;
-			return;
-		}
-		this.isDragging = false;
-		let maxLiftScale: AbstractScale | undefined = this.scales.get("maxLiftScale");
-
-		if (maxLiftScale && maxLiftScale.containsClick(x, y))
-		{
-			maxLiftScale.showDraggable = !maxLiftScale.showDraggable;
-		}
-		else 
-		{
-			return;
-		}
-		
-		this.drawLines();
 	}
 
 	protected init(): void 

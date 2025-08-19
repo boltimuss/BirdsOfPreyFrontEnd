@@ -39,6 +39,7 @@ export class HorizontalScale extends AbstractScale
 	public setCharactistics(charactistics: NomographCharacteristics): HorizontalScale
 	{
 		this.charactistics = charactistics;
+		this.charactistics.isHorizontal = true;
 		return this;
 
 	}
@@ -77,7 +78,42 @@ export class HorizontalScale extends AbstractScale
 		return this;
 
 	}
+	
+public getDataPointForSlideValue(slideValue: number): number
+	{
+		for (let i=0; i < this.sections.length; i++)
+		{
+			let section: Section = this.sections[i];
+
+			if (slideValue >= section.startLocation && slideValue <= section.endLocation)
+			{
+				let deltaX: number = Math.abs(section.startLocation - section.endLocation);
+				let deltaValue: number = Math.abs(section.startValue - section.endValue);
+				let percentage: number = Math.abs(slideValue - section.startLocation) / deltaX;
+
+				if (this.charactistics.isDescending)
+				{
+					return section.startValue - (percentage * deltaValue);
+				}
+				else
+				{
+					return (percentage * deltaValue) + section.startValue;
+				}
+			}
+		};
 		
+		if (slideValue < this.sections[0].startLocation)
+		{
+			return this.sections[0].startValue;
+		}
+		else if (slideValue > this.sections[this.sections.length - 1].endLocation)
+			{
+			return this.sections[this.sections.length - 1].endValue;
+		}
+
+		return -999;
+	}
+
 	public getPointForSlideValue(dataPoint: number): Point2D
 	{
 		for (let i=0; i < this.sections.length; i++)
@@ -89,7 +125,7 @@ export class HorizontalScale extends AbstractScale
 				let deltaX: number = Math.abs(section.startLocation - section.endLocation);
 				let deltaValue: number = Math.abs(section.startValue - section.endValue);
 				let percentage: number = 1 - (Math.abs(dataPoint - section.endValue) / deltaValue);
-			    let p: Point2D = new Point2D((section.startLocation+ (deltaX * percentage)), this.scaleOffset.y * this.mmPerPixel);
+			    let p: Point2D = new Point2D( section.startLocation+ (deltaX * percentage), this.scaleOffset.y * this.mmPerPixel);
 				return p;
 			}
 		};
@@ -151,7 +187,6 @@ export class HorizontalScale extends AbstractScale
 				startValue += ((this.charactistics.isDescending) ? -deltaValue: deltaValue);
 				startPixel += deltaPixel;
 			}
-		
 			startPixel -= deltaPixel;
 		})
 		
@@ -236,10 +271,10 @@ export class HorizontalScale extends AbstractScale
 			gc.setFill("black");
 			gc.font("normal 13px Sans");
 			
-			let value: number = this.getDataPointForSlideValue(this.draggableX);
-			if (value > -999)
+			this.value = this.getDataPointForSlideValue(this.draggableX);
+			if (this.value > -999)
 			{
-				gc.fillText((Math.ceil(value * 100) / 100).toFixed(2), this.draggableX -9 + xOffset, this.draggableY + 3);
+				gc.fillText((Math.ceil(this.value * 100) / 100).toFixed(2), this.draggableX -9 + xOffset, this.draggableY + 3);
 			}
 
 			else 
